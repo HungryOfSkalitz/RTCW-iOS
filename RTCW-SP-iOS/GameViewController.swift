@@ -363,7 +363,13 @@ class GameViewController: UIViewController {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            super.touchesBegan(touches, with: event)
+            for touch in touches {
+                let point = touch.location(in: view)
+                if point.x > view.bounds.size.width / 2 {
+                    GUIMouseLocation.x = point.x * factor
+                    GUIMouseLocation.y = point.y * factor
+                }
+            }
         }
     }
     
@@ -373,7 +379,12 @@ class GameViewController: UIViewController {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            super.touchesBegan(touches, with: event)
+            for touch in touches {
+                let point = touch.location(in: view)
+                if point.x > view.bounds.size.width / 2 {
+                    handleTouches([touch])
+                }
+            }
         }
     }
     
