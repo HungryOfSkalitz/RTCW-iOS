@@ -114,7 +114,8 @@ public final class JoyStickView: UIView {
         }
     }
     
-    private func resetPosition() {updateLocation(location: CGPoint(x: frame.midX, y: frame.midY))
+    private func resetPosition() {
+        updateLocation(location: CGPoint(x: frame.midX, y: frame.midY))
         self.delegate?.handleJoyStick(angle: 0, displacement: 0)
     }
     
@@ -212,7 +213,8 @@ public func LiangBarsky(rect: CGRect, p0: CGPoint, p1: CGPoint) -> (p0: CGPoint,
                 else if r > t0 {
                     t0 = r
                 }
-            }else if p > 0.0 {
+            }
+            else if p > 0.0 {
                 if r < t0 {
                     return (p0: p0, p1: p1, inRect: false)
                 }
@@ -227,3 +229,4 @@ public func LiangBarsky(rect: CGRect, p0: CGPoint, p1: CGPoint) -> (p0: CGPoint,
             p1: CGPoint(x: p0.x + t1 * xd, y: p0.y + t1 * yd),
             inRect: true)
 }
+
