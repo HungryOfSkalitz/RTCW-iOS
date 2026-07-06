@@ -127,10 +127,11 @@ public final class JoyStickView: UIView {
         guard let superview = self.superview else { return }
         guard superview.bounds.contains(location) else { return }
         
-        let delta = location - CGPoint(x: frame.midX, y: frame.midY)
-        let magnitude = sqrt(delta.x * delta.x + delta.y * delta.y)
+        let deltaX = location.x - frame.midX
+        let deltaY = location.y - frame.midY
+        let magnitude = sqrt(deltaX * deltaX + deltaY * deltaY)
         let newDisplacement = magnitude / radius
-        let newAngleRadians = atan2f(Float(delta.x), Float(delta.y))
+        let newAngleRadians = atan2f(Float(deltaX), Float(deltaY))
         
         if movable {
             if newDisplacement > 1.0 {
@@ -148,7 +149,7 @@ public final class JoyStickView: UIView {
                     frame.origin = origin
                 }
             }
-            handleImageView.center = CGPoint(x: bounds.midX + delta.x, y: bounds.midY + delta.y)
+            handleImageView.center = CGPoint(x: bounds.midX + deltaX, y: bounds.midY + deltaY)
         } else {
             if newDisplacement > 1.0 {
                 let x = CGFloat(sinf(newAngleRadians)) * radius
@@ -156,7 +157,7 @@ public final class JoyStickView: UIView {
                 handleImageView.frame.origin = CGPoint(x: x + bounds.midX - handleImageView.bounds.size.width / 2.0,
                                                        y: y + bounds.midY - handleImageView.bounds.size.height / 2.0)
             } else {
-                handleImageView.center = CGPoint(x: bounds.midX + delta.x, y: bounds.midY + delta.y)
+                handleImageView.center = CGPoint(x: bounds.midX + deltaX, y: bounds.midY + deltaY)
             }
         }
         
@@ -168,16 +169,10 @@ public final class JoyStickView: UIView {
             self.angle = newClampedDisplacement != 0.0 ? CGFloat(180.0 - newAngleRadians * 180.0 / Float.pi) : 0.0
             self.delegate?.handleJoyStick(angle: angle, displacement: displacement)
             
-            let new_x = delta.x / radius
-            let new_y = -(delta.y / radius)
+            let new_x = deltaX / radius
+            let new_y = -(deltaY / radius)
             self.delegate?.handleJoyStickPosition(x: new_x, y: new_y)
         }
-    }
-}
-
-fileprivate extension CGPoint {
-    static func -(lhs: CGPoint, rhs: CGPoint) -> CGPoint {
-        return CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
     }
 }
 
@@ -229,4 +224,5 @@ public func LiangBarsky(rect: CGRect, p0: CGPoint, p1: CGPoint) -> (p0: CGPoint,
             p1: CGPoint(x: p0.x + t1 * xd, y: p0.y + t1 * yd),
             inRect: true)
 }
+
 
