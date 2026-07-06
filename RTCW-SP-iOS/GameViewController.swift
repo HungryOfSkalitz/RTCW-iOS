@@ -181,22 +181,6 @@ class GameViewController: UIViewController {
         argv.append("\"+moveright\"")
         
         argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_UP")
-        argv.append("\"+lookup\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_DOWN")
-        argv.append("\"+lookdown\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_LEFT")
-        argv.append("\"+left\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_RIGHT")
-        argv.append("\"+right\"")
-        
-        argv.append("+bind")
         argv.append("PAD0_A")
         argv.append("\"+moveup\"")
         
@@ -358,6 +342,8 @@ class GameViewController: UIViewController {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event) // Возвращаем управление системе и SDL
+        
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
             for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
@@ -374,6 +360,8 @@ class GameViewController: UIViewController {
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event) // Возвращаем управление системе и SDL
+        
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
             for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
@@ -389,11 +377,11 @@ class GameViewController: UIViewController {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event) // Возвращаем управление системе и SDL
+        
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
-        } else {
-            super.touchesBegan(touches, with: event)
         }
     }
     
