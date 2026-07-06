@@ -181,6 +181,22 @@ class GameViewController: UIViewController {
         argv.append("\"+moveright\"")
         
         argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_UP")
+        argv.append("\"+lookup\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_DOWN")
+        argv.append("\"+lookdown\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_LEFT")
+        argv.append("\"+left\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_RIGHT")
+        argv.append("\"+right\"")
+        
+        argv.append("+bind")
         argv.append("PAD0_A")
         argv.append("\"+moveup\"")
         
@@ -306,8 +322,13 @@ class GameViewController: UIViewController {
     
     func handleTouches(_ touches: Set<UITouch>) {
         for touch in touches {
+            let rawPoint = touch.location(in: view)
+
+            
+            guard rawPoint.x > view.bounds.size.width / 2 else { continue }
+
             var mouseLocation = CGPoint(x: 0, y: 0)
-            var point = touch.location(in: view)
+            var point = rawPoint
             
             var deltaX = 0
             var deltaY = 0
@@ -342,46 +363,31 @@ class GameViewController: UIViewController {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event) // Возвращаем управление системе и SDL
-        
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
             for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            for touch in touches {
-                let point = touch.location(in: view)
-                if point.x > view.bounds.size.width / 2 {
-                    GUIMouseLocation.x = point.x * factor
-                    GUIMouseLocation.y = point.y * factor
-                }
-            }
+            super.touchesBegan(touches, with: event)
         }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesMoved(touches, with: event) // Возвращаем управление системе и SDL
-        
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
             for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            for touch in touches {
-                let point = touch.location(in: view)
-                if point.x > view.bounds.size.width / 2 {
-                    handleTouches([touch])
-                }
-            }
+            super.touchesBegan(touches, with: event)
         }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event) // Возвращаем управление системе и SDL
-        
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
+        } else {
+            super.touchesBegan(touches, with: event)
         }
     }
     
@@ -396,4 +402,3 @@ class GameViewController: UIViewController {
   }
 
 }
-
