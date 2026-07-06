@@ -78,6 +78,10 @@ class GameViewController: UIViewController, JoystickDelegate {
         #if os(iOS)
         self.navigationController?.navigationItem.backBarButtonItem?.isEnabled = false
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
+        
+        if joystick1 != nil {
+            joystick1.delegate = self
+        }
         #endif
         
         #if os(tvOS)
@@ -113,8 +117,7 @@ class GameViewController: UIViewController, JoystickDelegate {
         }
         
         let screenBounds = UIScreen.main.bounds
-        let screenScale:CGFloat = UIScreen.main.scale
-        let screenSize = CGSize(width: screenBounds.size.width * screenScale, height: screenBounds.size.height * screenScale)
+        let screenScale:CGFloat = UIScreen.main.scalelet screenSize = CGSize(width: screenBounds.size.width * screenScale, height: screenBounds.size.height * screenScale)
 
         argv.append("+set")
         argv.append("r_mode")
@@ -207,12 +210,9 @@ class GameViewController: UIViewController, JoystickDelegate {
         
         for ptr in cargs { free(UnsafeMutablePointer(mutating: ptr)) }
         
-        self.gameInitialized = true
+            self.gameInitialized = true
         
         #if os(iOS)
-        if let js1 = self.joystick1 {
-            js1.delegate = self
-        }
         if self.defaults.integer(forKey: "tiltAiming") == 1 {
             self.motionManager.startDeviceMotionUpdates()
         }
@@ -221,52 +221,133 @@ class GameViewController: UIViewController, JoystickDelegate {
     }
     
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
-        // Handled via position updates to engine commands
-    }
-    
-    func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-        let deadzone: CGFloat = 0.15
-        let targetX = abs(x) > deadzone ? x : 0.0
-        let targetY = abs(y) > deadzone ? y : 0.0
-        
-        if targetY > 0 {
-            CL_KeyEvent(Int32(K_UPARROW.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-            CL_KeyEvent(Int32(K_DOWNARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-        } else if targetY < 0 {
-            CL_KeyEvent(Int32(K_DOWNARROW.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-            CL_KeyEvent(Int32(K_UPARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-        } else {
-            CL_KeyEvent(Int32(K_UPARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-            CL_KeyEvent(Int32(K_DOWNARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+        if displacement == 0 {
+            CL_KeyEvent(Int32(202), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_UP
+            CL_KeyEvent(Int32(203), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_DOWN
+            CL_KeyEvent(Int32(204), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_LEFT
+            CL_KeyEvent(Int32(205), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_RIGHT
+            return
         }
         
-        if targetX > 0 {
-            CL_KeyEvent(Int32(K_STRAFE_RIGHT.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-            CL_KeyEvent(Int32(K_STRAFE_LEFT.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-        let coof = (point.x - view.bounds.size.width / 2) * 1.3
-                    point.x = (view.bounds.size.width / 2 + coof)
-                }
-                else {
-                    let coof = (view.bounds.size.width / 2 - point.x) * 1.3;
-                    point.x = (view.bounds.size.width / 2 - coof);
-                }
+        let radians = (180.0 - angle) * CGFloat.pi / 180.0
+        let dx = sin(radians) * displacement
+        let dy = cos(radians) * displacement
+        
+        CL_KeyEvent(Int32(202), dy > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(203), dy < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(204), dx < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(205), dx > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    func handleJoyStickPosition(x: CGFloat, y: CGFloat) {// Камера больше не привязана к координатам джойстика
+    }
+    
+    @objc func menuButtonAction() {
+        
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+    }
+    
+    @objc func firePressed(sender: UIButton!) {
+        KeyEvent(key: K_MOUSE1, down: true)
+    }
+    
+    @objc func fireReleased(sender: UIButton!) {
+        KeyEvent(key: K_MOUSE1, down: false)
+    }
+    
+    @objc func jumpPressed(sender: UIButton!) {
+        KeyEvent(key: K_SPACE, down: true)
+    }
+    
+    @objc func jumpReleased(sender: UIButton!) {
+        KeyEvent(key: K_SPACE, down: false)
+    }
+    
+    @objc func usePressed(sender: UIButton!) {
+        CL_KeyEvent(Int32(102), qtrue, UInt32(Sys_Milliseconds()))
+    }
+    
+    @objc func useReleased(sender: UIButton!) {
+        CL_KeyEvent(Int32(102), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    @IBAction func crouch(_ sender: UIButton) {
+        crouching = !crouching
+        CL_KeyEvent(Int32(99), crouching ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    #if os(iOS)
+    @IBAction func expand(_ sender: Any) {
+        buttonStackExpanded = !buttonStackExpanded
+        
+        UIView.animate(withDuration: 0.5) {
+            self.expandButton.setTitle(self.buttonStackExpanded ? "<" : ">", for: .normal)
+            self.escapeButton.isHidden = !self.buttonStackExpanded
+            self.escapeButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.tildeButton.isHidden = !self.buttonStackExpanded
+            self.tildeButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.quickLoadButton.isHidden = !self.buttonStackExpanded
+            self.quickLoadButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.quickSaveButton.isHidden = !self.buttonStackExpanded
+            self.quickSaveButton.alpha = self.buttonStackExpanded ? 1 : 0
+        }
+        
+    }
+    #endif
+    
+    @IBAction func tilde(_ sender: UIButton) {
+        CL_KeyEvent(Int32(K_CONSOLE.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_CONSOLE.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    @IBAction func escape(_ sender: UIButton) {
+        CL_KeyEvent(Int32(K_ESCAPE.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_ESCAPE.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    @IBAction func quickSave(_ sender: UIButton) {
+    CL_KeyEvent(Int32(K_F5.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_F5.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    @IBAction func quickLoad(_ sender: UIButton) {
+        CL_KeyEvent(Int32(K_F9.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_F9.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+
+    @IBAction func nextWeapon(sender: UIButton) {
+        CL_KeyEvent(Int32(K_MWHEELUP.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_MWHEELUP.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    @IBAction func prevWeapon(sender: UIButton) {
+        CL_KeyEvent(Int32(K_MWHEELDOWN.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(K_MWHEELDOWN.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+    }
+    
+    func handleTouches(_ touches: Set<UITouch>) {
+        for touch in touches {
+            let point = touch.location(in: view)
+            
+            if joystick1 != nil && joystick1.frame.contains(point) {
+                continue
             }
             
-            mouseLocation.x = point.x * factor;
-            mouseLocation.y = point.y * factor;
+            let previousPoint = touch.previousLocation(in: view)
             
-            deltaX = Int(roundf(Float((mouseLocation.x - GUIMouseLocation.x) * mouseScale.x)));
-            deltaY = Int(roundf(Float((mouseLocation.y - GUIMouseLocation.y) * mouseScale.y)));
+            let deltaX = Int32((point.x - previousPoint.x) * mouseScale.x * 2.0)
+            let deltaY = Int32((point.y - previousPoint.y) * mouseScale.y * 2.0)
             
-            GUIMouseLocation = mouseLocation;
-            
-            CL_MouseEvent(Int32(deltaX), Int32(deltaY), Sys_Milliseconds(), qtrue);
+            CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qfalse)
         }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if Key_GetCatcher() & KEYCATCH_UI != 0 {
-            for touch in touches {
+        if Key_GetCatcher() & KEYCATCH_UI != 0 {for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
@@ -289,8 +370,7 @@ class GameViewController: UIViewController, JoystickDelegate {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
         } else {
-            // Reset mouse tracking state when finger lifts to avoid snap-turns
-            GUIMouseLocation = CGPoint.zero
+            super.touchesBegan(touches, with: event)
         }
     }
     
@@ -301,6 +381,7 @@ class GameViewController: UIViewController, JoystickDelegate {
     }
     
     func KeyEvent(key: keyNum_t, down: Bool) {
-        CL_KeyEvent(Int32(key.rawValue), qboolean(rawValue: down ? 1 : 0), UInt32(Sys_Milliseconds()))
+          CL_KeyEvent(Int32(key.rawValue), qboolean(rawValue: down ? 1 : 0), UInt32(Sys_Milliseconds()))
     }
+
 }
