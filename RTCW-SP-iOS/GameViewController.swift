@@ -12,7 +12,7 @@ import GameController
 import CoreMotion
 #endif
 
-class GameViewController: UIViewController {
+class GameViewController: UIViewController, JoystickDelegate {
 
     var selectedMap = ""
     var selectedSavedGame = ""
@@ -78,30 +78,14 @@ class GameViewController: UIViewController {
         #if os(iOS)
         self.navigationController?.navigationItem.backBarButtonItem?.isEnabled = false
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-        
-//        tildeButton.layer.borderColor = UIColor.white.cgColor
-//        tildeButton.layer.borderWidth = 1
-//        tildeButton.alpha = 0
-//        escapeButton.layer.borderColor = UIColor.white.cgColor
-//        escapeButton.layer.borderWidth = 1
-//        escapeButton.alpha = 0
-//        quickSaveButton.layer.borderColor = UIColor.white.cgColor
-//        quickSaveButton.layer.borderWidth = 1
-//        quickSaveButton.alpha = 0
-//        quickLoadButton.layer.borderColor = UIColor.white.cgColor
-//        quickLoadButton.layer.borderWidth = 1
-//        quickLoadButton.alpha = 0
         #endif
         
         #if os(tvOS)
-        // note: this would prevent it from being accepted on the App Store
-        
         let menuPressRecognizer = UITapGestureRecognizer()
         menuPressRecognizer.addTarget(self, action: #selector(GameViewController.menuButtonAction))
         menuPressRecognizer.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
         
         self.view.addGestureRecognizer(menuPressRecognizer)
-        
         #endif
         
         #if os(tvOS)
@@ -223,9 +207,12 @@ class GameViewController: UIViewController {
         
         for ptr in cargs { free(UnsafeMutablePointer(mutating: ptr)) }
         
-            self.gameInitialized = true
+        self.gameInitialized = true
         
         #if os(iOS)
+        if let js1 = self.joystick1 {
+            js1.delegate = self
+        }
         if self.defaults.integer(forKey: "tiltAiming") == 1 {
             self.motionManager.startDeviceMotionUpdates()
         }
@@ -233,109 +220,30 @@ class GameViewController: UIViewController {
         }
     }
     
-    @objc func menuButtonAction() {
+    func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
+        // Handled via position updates to engine commands
+    }
+    
+    func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
+        let deadzone: CGFloat = 0.15
+        let targetX = abs(x) > deadzone ? x : 0.0
+        let targetY = abs(y) > deadzone ? y : 0.0
         
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-    
-    @objc func firePressed(sender: UIButton!) {
-        KeyEvent(key: K_MOUSE1, down: true)
-    }
-    
-    @objc func fireReleased(sender: UIButton!) {
-        KeyEvent(key: K_MOUSE1, down: false)
-    }
-    
-    @objc func jumpPressed(sender: UIButton!) {
-        KeyEvent(key: K_SPACE, down: true)
-    }
-    
-    @objc func jumpReleased(sender: UIButton!) {
-        KeyEvent(key: K_SPACE, down: false)
-    }
-    
-    @objc func usePressed(sender: UIButton!) {
-        CL_KeyEvent(Int32(102), qtrue, UInt32(Sys_Milliseconds()))
-    }
-    
-    @objc func useReleased(sender: UIButton!) {
-        CL_KeyEvent(Int32(102), qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    @IBAction func crouch(_ sender: UIButton) {
-        crouching = !crouching
-        CL_KeyEvent(Int32(99), crouching ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    #if os(iOS)
-    @IBAction func expand(_ sender: Any) {
-        buttonStackExpanded = !buttonStackExpanded
-        
-        UIView.animate(withDuration: 0.5) {
-            self.expandButton.setTitle(self.buttonStackExpanded ? "<" : ">", for: .normal)
-            self.escapeButton.isHidden = !self.buttonStackExpanded
-            self.escapeButton.alpha = self.buttonStackExpanded ? 1 : 0
-            self.tildeButton.isHidden = !self.buttonStackExpanded
-            self.tildeButton.alpha = self.buttonStackExpanded ? 1 : 0
-            self.quickLoadButton.isHidden = !self.buttonStackExpanded
-            self.quickLoadButton.alpha = self.buttonStackExpanded ? 1 : 0
-            self.quickSaveButton.isHidden = !self.buttonStackExpanded
-            self.quickSaveButton.alpha = self.buttonStackExpanded ? 1 : 0
+        if targetY > 0 {
+            CL_KeyEvent(Int32(K_UPARROW.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(K_DOWNARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+        } else if targetY < 0 {
+            CL_KeyEvent(Int32(K_DOWNARROW.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(K_UPARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+        } else {
+            CL_KeyEvent(Int32(K_UPARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(K_DOWNARROW.rawValue), qfalse, UInt32(Sys_Milliseconds()))
         }
         
-    }
-    #endif
-    
-    @IBAction func tilde(_ sender: UIButton) {
-        CL_KeyEvent(Int32(K_CONSOLE.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(K_CONSOLE.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    @IBAction func escape(_ sender: UIButton) {
-        CL_KeyEvent(Int32(K_ESCAPE.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(K_ESCAPE.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    @IBAction func quickSave(_ sender: UIButton) {
-    CL_KeyEvent(Int32(K_F5.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(K_F5.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    @IBAction func quickLoad(_ sender: UIButton) {
-        CL_KeyEvent(Int32(K_F9.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(K_F9.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-
-    @IBAction func nextWeapon(sender: UIButton) {
-        CL_KeyEvent(Int32(K_MWHEELUP.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(K_MWHEELUP.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    @IBAction func prevWeapon(sender: UIButton) {
-        CL_KeyEvent(Int32(K_MWHEELDOWN.rawValue), qtrue, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(K_MWHEELDOWN.rawValue), qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    func handleTouches(_ touches: Set<UITouch>) {
-        for touch in touches {
-            let rawPoint = touch.location(in: view)
-
-            
-            guard rawPoint.x > view.bounds.size.width / 2 else { continue }
-
-            var mouseLocation = CGPoint(x: 0, y: 0)
-            var point = rawPoint
-            
-            var deltaX = 0
-            var deltaY = 0
-            
-            if view.bounds.size.height * 480 > view.bounds.size.width * 640 {
-                if point.x > view.bounds.size.width / 2 {
-                    let coof = (point.x - view.bounds.size.width / 2) * 1.3
+        if targetX > 0 {
+            CL_KeyEvent(Int32(K_STRAFE_RIGHT.rawValue), qtrue, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(K_STRAFE_LEFT.rawValue), qfalse, UInt32(Sys_Milliseconds()))
+        let coof = (point.x - view.bounds.size.width / 2) * 1.3
                     point.x = (view.bounds.size.width / 2 + coof)
                 }
                 else {
@@ -347,18 +255,12 @@ class GameViewController: UIViewController {
             mouseLocation.x = point.x * factor;
             mouseLocation.y = point.y * factor;
             
-            // Not quite right on iPhone X but works for now -tkidd
             deltaX = Int(roundf(Float((mouseLocation.x - GUIMouseLocation.x) * mouseScale.x)));
             deltaY = Int(roundf(Float((mouseLocation.y - GUIMouseLocation.y) * mouseScale.y)));
             
-//            print("ml.x: \(mouseLocation.x) gl.x: \(GUIMouseLocation.x) ms.x: \(mouseScale.x) ms.y: \(mouseScale.y)")
-            
             GUIMouseLocation = mouseLocation;
             
-            //                ri.Printf(PRINT_DEVELOPER, "%s: deltaX = %d, deltaY = %d\n", __PRETTY_FUNCTION__, deltaX, deltaY);
-            
             CL_MouseEvent(Int32(deltaX), Int32(deltaY), Sys_Milliseconds(), qtrue);
-            
         }
     }
     
@@ -368,7 +270,7 @@ class GameViewController: UIViewController {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            super.touchesBegan(touches, with: event)
+            handleTouches(touches)
         }
     }
     
@@ -378,7 +280,7 @@ class GameViewController: UIViewController {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            super.touchesBegan(touches, with: event)
+            handleTouches(touches)
         }
     }
     
@@ -387,7 +289,8 @@ class GameViewController: UIViewController {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
         } else {
-            super.touchesBegan(touches, with: event)
+            // Reset mouse tracking state when finger lifts to avoid snap-turns
+            GUIMouseLocation = CGPoint.zero
         }
     }
     
@@ -398,7 +301,6 @@ class GameViewController: UIViewController {
     }
     
     func KeyEvent(key: keyNum_t, down: Bool) {
-          CL_KeyEvent(Int32(key.rawValue), qboolean(rawValue: down ? 1 : 0), UInt32(Sys_Milliseconds()))
-  }
-
+        CL_KeyEvent(Int32(key.rawValue), qboolean(rawValue: down ? 1 : 0), UInt32(Sys_Milliseconds()))
+    }
 }
