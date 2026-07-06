@@ -52,6 +52,8 @@ class GameViewController: UIViewController, JoystickDelegate {
     let motionManager: CMMotionManager = CMMotionManager()
     #endif
     
+    var lastTouchPoints = [UITouch: CGPoint]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -223,10 +225,10 @@ class GameViewController: UIViewController, JoystickDelegate {
     
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         if displacement == 0 {
-            CL_KeyEvent(Int32(202), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_UP
-            CL_KeyEvent(Int32(203), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_DOWN
-            CL_KeyEvent(Int32(204), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_LEFT
-            CL_KeyEvent(Int32(205), qfalse, UInt32(Sys_Milliseconds())) // PAD0_LEFTSTICK_RIGHT
+            CL_KeyEvent(Int32(202), qfalse, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(203), qfalse, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(204), qfalse, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(205), qfalse, UInt32(Sys_Milliseconds()))
             return
         }
         
@@ -241,7 +243,7 @@ class GameViewController: UIViewController, JoystickDelegate {
     }
     
     func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-        // Камера больше не привязана к координатам джойстика
+        // Очищено
     }
     
     @objc func menuButtonAction() {
@@ -339,12 +341,13 @@ class GameViewController: UIViewController, JoystickDelegate {
                 continue
             }
             
-            let previousPoint = touch.previousLocation(in: view)
+            guard let lastPoint = lastTouchPoints[touch] else { continue }
             
-            let deltaX = Int32((point.x - previousPoint.x) * mouseScale.x * 2.0)
-            let deltaY = Int32((point.y - previousPoint.y) * mouseScale.y * 2.0)
+            let deltaX = Int32((point.x - lastPoint.x) * mouseScale.x * 3.5)
+            let deltaY = Int32((point.y - lastPoint.y) * mouseScale.y * 3.5)
             
             CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qfalse)
+            lastTouchPoints[touch] = point
         }
     }
     
@@ -354,7 +357,13 @@ class GameViewController: UIViewController, JoystickDelegate {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            handleTouches(touches)
+            for touch in touches {
+                let point = touch.location(in: view)
+                if joystick1 != nil && joystick1.frame.contains(point) {
+                    continue
+                }
+                lastTouchPoints[touch] = point
+            }
         }
     }
     
@@ -373,7 +382,15 @@ class GameViewController: UIViewController, JoystickDelegate {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
         } else {
-            super.touchesBegan(touches, with: event)
+            for touch in touches {
+                lastTouchPoints.removeValue(forKey: touch)
+            }
+        }
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            lastTouchPoints.removeValue(forKey: touch)
         }
     }
     
@@ -388,3 +405,4 @@ class GameViewController: UIViewController, JoystickDelegate {
     }
 
 }
+
