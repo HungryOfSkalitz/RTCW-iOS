@@ -117,7 +117,8 @@ class GameViewController: UIViewController, JoystickDelegate {
         }
         
         let screenBounds = UIScreen.main.bounds
-        let screenScale:CGFloat = UIScreen.main.scalelet screenSize = CGSize(width: screenBounds.size.width * screenScale, height: screenBounds.size.height * screenScale)
+        let screenScale:CGFloat = UIScreen.main.scale
+        let screenSize = CGSize(width: screenBounds.size.width * screenScale, height: screenBounds.size.height * screenScale)
 
         argv.append("+set")
         argv.append("r_mode")
@@ -239,7 +240,8 @@ class GameViewController: UIViewController, JoystickDelegate {
         CL_KeyEvent(Int32(205), dx > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
     }
     
-    func handleJoyStickPosition(x: CGFloat, y: CGFloat) {// Камера больше не привязана к координатам джойстика
+    func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
+        // Камера больше не привязана к координатам джойстика
     }
     
     @objc func menuButtonAction() {
@@ -347,7 +349,8 @@ class GameViewController: UIViewController, JoystickDelegate {
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if Key_GetCatcher() & KEYCATCH_UI != 0 {for touch in touches {
+        if Key_GetCatcher() & KEYCATCH_UI != 0 {
+            for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
