@@ -308,16 +308,9 @@ public final class JoyStickView: UIView {
             // Convert to degrees: 0° is up, 90° is right, 180° is down and 270° is left
             //
             self.angle = newClampedDisplacement != 0.0 ? CGFloat(180.0 - newAngleRadians * 180.0 / Float.pi) : 0.0
-            //            monitor?(angle, displacement)
             self.delegate?.handleJoyStick(angle: angle, displacement: displacement)
             
-            
-            //            print("delta x: \(delta.dx) delta y: \(delta.dy)")
-            
-            let new_x = (delta.dx / (radius * 2))
-            let new_y = (delta.dy / (radius * 2)) * -1
-            //            print("new_x: \(new_x) new_y: \(new_y)")
-            self.delegate?.handleJoyStickPosition(x: new_x, y: new_y)
+            self.delegate?.handleJoyStickPosition(x: 0.0, y: 0.0)
         }
     }
 }
