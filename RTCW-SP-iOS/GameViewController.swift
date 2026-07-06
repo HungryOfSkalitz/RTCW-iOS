@@ -28,7 +28,7 @@ class GameViewController: UIViewController, JoystickDelegate {
     var crouching = false
 
     #if os(iOS)
-    var joystick1: JoyStickView!
+    @IBOutlet weak var joystick1: JoyStickView!
     var fireButton: UIButton!
     var jumpButton: UIButton!
     var useButton: UIButton!
@@ -144,59 +144,11 @@ class GameViewController: UIViewController, JoystickDelegate {
         
         argv.append("+set")
         argv.append("in_joystick")
-        argv.append("1")
+        argv.append("0")
         
         argv.append("+set")
         argv.append("in_joystickUseAnalog")
-        argv.append("1")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTTRIGGER")
-        argv.append("\"+attack\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_LEFTSTICK_UP")
-        argv.append("\"+forward\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_LEFTSTICK_DOWN")
-        argv.append("\"+back\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_LEFTSTICK_LEFT")
-        argv.append("\"+moveleft\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_LEFTSTICK_RIGHT")
-        argv.append("\"+moveright\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_UP")
-        argv.append("\"+lookup\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_DOWN")
-        argv.append("\"+lookdown\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_LEFT")
-        argv.append("\"+left\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSTICK_RIGHT")
-        argv.append("\"+right\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_A")
-        argv.append("\"+moveup\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_LEFTSHOULDER")
-        argv.append("\"weapnext\"")
-        
-        argv.append("+bind")
-        argv.append("PAD0_RIGHTSHOULDER")
-        argv.append("\"weapprev\"")
+        argv.append("0")
         
         #if DEBUG
         argv.append("+set")
@@ -223,12 +175,19 @@ class GameViewController: UIViewController, JoystickDelegate {
         }
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if joystick1 != nil {
+            joystick1.delegate = self
+        }
+    }
+    
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         if displacement == 0 {
-            CL_KeyEvent(Int32(202), qfalse, UInt32(Sys_Milliseconds()))
-            CL_KeyEvent(Int32(203), qfalse, UInt32(Sys_Milliseconds()))
-            CL_KeyEvent(Int32(204), qfalse, UInt32(Sys_Milliseconds()))
-            CL_KeyEvent(Int32(205), qfalse, UInt32(Sys_Milliseconds()))
+            CL_KeyEvent(Int32(119), qfalse, UInt32(Sys_Milliseconds())) // W
+            CL_KeyEvent(Int32(115), qfalse, UInt32(Sys_Milliseconds())) // S
+            CL_KeyEvent(Int32(97), qfalse, UInt32(Sys_Milliseconds()))  // A
+            CL_KeyEvent(Int32(100), qfalse, UInt32(Sys_Milliseconds())) // D
             return
         }
         
@@ -236,14 +195,13 @@ class GameViewController: UIViewController, JoystickDelegate {
         let dx = sin(radians) * displacement
         let dy = cos(radians) * displacement
         
-        CL_KeyEvent(Int32(202), dy > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(203), dy < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(204), dx < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(205), dx > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(119), dy > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(115), dy < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(97), dx < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
+        CL_KeyEvent(Int32(100), dx > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
     }
     
     func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-        // Очищено
     }
     
     @objc func menuButtonAction() {
@@ -343,8 +301,8 @@ class GameViewController: UIViewController, JoystickDelegate {
             
             guard let lastPoint = lastTouchPoints[touch] else { continue }
             
-            let deltaX = Int32((point.x - lastPoint.x) * mouseScale.x * 3.5)
-            let deltaY = Int32((point.y - lastPoint.y) * mouseScale.y * 3.5)
+            let deltaX = Int32((point.x - lastPoint.x) * mouseScale.x * 4.0)
+            let deltaY = Int32((point.y - lastPoint.y) * mouseScale.y * 4.0)
             
             CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qfalse)
             lastTouchPoints[touch] = point
@@ -405,4 +363,3 @@ class GameViewController: UIViewController, JoystickDelegate {
     }
 
 }
-
