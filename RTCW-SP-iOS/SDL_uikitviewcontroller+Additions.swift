@@ -59,11 +59,18 @@ extension SDL_uikitviewcontroller {
         set(newValue) { Holder._f1Button = newValue }
     }
 
+    var prevWeaponButton: UIButton {
+        get { return Holder._prevWeaponButton }
+        set(newValue) { Holder._prevWeaponButton = newValue }
+    }
     
+    var nextWeaponButton: UIButton {
+        get { return Holder._nextWeaponButton }
+        set(newValue) { Holder._nextWeaponButton = newValue }
+    }
 
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
         
     }
 }
@@ -71,7 +78,7 @@ extension SDL_uikitviewcontroller {
 extension SDL_uikitviewcontroller: JoystickDelegate {
     
     func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-        
+       
     }
 
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
