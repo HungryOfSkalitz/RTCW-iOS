@@ -120,8 +120,10 @@ class GameViewController: UIViewController {
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
-        Key_Event(Int32(K_MOUSE1), qboolean(rawValue: 1), qboolean(rawValue: 0))
-        Key_Event(Int32(K_MOUSE1), qboolean(rawValue: 0), qboolean(rawValue: 0))
+            
+        Key_Event(K_MOUSE1, qboolean(rawValue: 1), qboolean(rawValue: 0))
+        Key_Event(K_MOUSE1, qboolean(rawValue: 0), qboolean(rawValue: 0))  
+            
         } else {
             
             if let touch = cameraTouch, touches.contains(touch) {
