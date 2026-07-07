@@ -91,8 +91,7 @@ extension SDL_uikitviewcontroller {
     }
     
     var buttonStackExpanded:Bool {
-        get { return Holder._buttonStackExpanded }
-        set(newValue) { Holder._buttonStackExpanded = newValue }
+        get { return Holder._buttonStackExpanded = newValue }
     }
     
     var f1Button:UIButton {
@@ -134,45 +133,45 @@ extension SDL_uikitviewcontroller {
     }
     
     @objc func firePressed(_ sender: UIButton) {
-        Key_Event(130, qboolean(1), qboolean(1))
+        Key_Event(130, qboolean(1))
     }
     
     @objc func fireReleased(_ sender: UIButton) {
-        Key_Event(130, qboolean(0), qboolean(1))
+        Key_Event(130, qboolean(0))
     }
     
     @objc func jumpPressed(_ sender: UIButton) {
-        Key_Event(131, qboolean(1), qboolean(1))
+        Key_Event(131, qboolean(1))
     }
     
     @objc func jumpReleased(_ sender: UIButton) {
-        Key_Event(131, qboolean(0), qboolean(1))
+        Key_Event(131, qboolean(0))
     }
     
     @objc func usePressed(_ sender: UIButton) {
-        Key_Event(101, qboolean(1), qboolean(1))
+        Key_Event(101, qboolean(1))
     }
     
     @objc func useReleased(_ sender: UIButton) {
-        Key_Event(101, qboolean(0), qboolean(1))
+        Key_Event(101, qboolean(0))
     }
     
     @objc func crouchPressed(_ sender: UIButton) {
         crouching = !crouching
-        Key_Event(136, crouching ? qboolean(1) : qboolean(0), qboolean(1))
+        Key_Event(136, crouching ? qboolean(1) : qboolean(0))
     }
     
     @objc func prevWeaponPressed(_ sender: UIButton) {
-        Key_Event(91, qboolean(1), qboolean(1))
+        Key_Event(91, qboolean(1))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            Key_Event(91, qboolean(0), qboolean(1))
+            Key_Event(91, qboolean(0))
         }
     }
     
     @objc func nextWeaponPressed(_ sender: UIButton) {
-        Key_Event(93, qboolean(1), qboolean(1))
+        Key_Event(93, qboolean(1))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            Key_Event(93, qboolean(0), qboolean(1))
+            Key_Event(93, qboolean(0))
         }
     }
     
@@ -226,26 +225,26 @@ extension SDL_uikitviewcontroller {
             if joyX > 0.5 {
                 cl_joyscale_x.0 = Int32(min(abs(joyX) * 15, maxJoyValue))
                 cl_joyscale_x.1 = 0
-                Key_Event(135, qboolean(1), qboolean(1))
-                Key_Event(134, qboolean(0), qboolean(1))
+                Key_Event(135, qboolean(1))
+                Key_Event(134, qboolean(0))
             } else if joyX < -0.5 {
                 cl_joyscale_x.1 = Int32(min(abs(joyX) * 15, maxJoyValue))
                 cl_joyscale_x.0 = 0
-                Key_Event(134, qboolean(1), qboolean(1))
-                Key_Event(135, qboolean(0), qboolean(1))
+                Key_Event(134, qboolean(1))
+                Key_Event(135, qboolean(0))
             }
             
             let joyY = deltaY * sens
             if joyY > 0.5 {
                 cl_joyscale_y.0 = Int32(min(abs(joyY) * 20, maxJoyValue))
                 cl_joyscale_y.1 = 0
-                Key_Event(133, qboolean(1), qboolean(1))
-                Key_Event(132, qboolean(0), qboolean(1))
+                Key_Event(133, qboolean(1))
+                Key_Event(132, qboolean(0))
             } else if joyY < -0.5 {
                 cl_joyscale_y.1 = Int32(min(abs(joyY) * 20, maxJoyValue))
                 cl_joyscale_y.0 = 0
-                Key_Event(132, qboolean(1), qboolean(1))
-                Key_Event(133, qboolean(0), qboolean(1))
+                Key_Event(132, qboolean(1))
+                Key_Event(133, qboolean(0))
             }
             
             lastPanPoint = currentPoint
@@ -256,10 +255,10 @@ extension SDL_uikitviewcontroller {
             cl_joyscale_x.1 = 0
             cl_joyscale_y.0 = 0
             cl_joyscale_y.1 = 0
-            Key_Event(132, qboolean(0), qboolean(1))
-            Key_Event(133, qboolean(0), qboolean(1))
-            Key_Event(134, qboolean(0), qboolean(1))
-            Key_Event(135, qboolean(0), qboolean(1))
+            Key_Event(132, qboolean(0))
+            Key_Event(133, qboolean(0))
+            Key_Event(134, qboolean(0))
+            Key_Event(135, qboolean(0))
             
         default:
             break
@@ -277,10 +276,10 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         
         if displacement == 0 {
-            Key_Event(119, qboolean(0), qboolean(1))
-            Key_Event(115, qboolean(0), qboolean(1))
-            Key_Event(97,  qboolean(0), qboolean(1))
-            Key_Event(100, qboolean(0), qboolean(1))
+            Key_Event(119, qboolean(0))
+            Key_Event(115, qboolean(0))
+            Key_Event(97,  qboolean(0))
+            Key_Event(100, qboolean(0))
             return
         }
         
@@ -288,9 +287,9 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
         let dx = sin(radians) * displacement
         let dy = cos(radians) * displacement
         
-        Key_Event(119, dy < -0.35 ? qboolean(1) : qboolean(0), qboolean(1))
-        Key_Event(115, dy > 0.35  ? qboolean(1) : qboolean(0), qboolean(1))
-        Key_Event(97,  dx < -0.35 ? qboolean(1) : qboolean(0), qboolean(1))
-        Key_Event(100, dx > 0.35  ? qboolean(1) : qboolean(0), qboolean(1))
+        Key_Event(119, dy < -0.35 ? qboolean(1) : qboolean(0))
+        Key_Event(115, dy > 0.35  ? qboolean(1) : qboolean(0))
+        Key_Event(97,  dx < -0.35 ? qboolean(1) : qboolean(0))
+        Key_Event(100, dx > 0.35  ? qboolean(1) : qboolean(0))
     }
 }
