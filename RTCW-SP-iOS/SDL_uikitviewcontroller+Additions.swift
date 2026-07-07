@@ -134,45 +134,45 @@ extension SDL_uikitviewcontroller {
     }
     
     @objc func firePressed(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(130), Int32(1), 0, 0, nil)
+        Key_Event(130, qboolean(1), qboolean(1))
     }
     
     @objc func fireReleased(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(130), Int32(0), 0, 0, nil)
+        Key_Event(130, qboolean(0), qboolean(1))
     }
     
     @objc func jumpPressed(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(131), Int32(1), 0, 0, nil)
+        Key_Event(131, qboolean(1), qboolean(1))
     }
     
     @objc func jumpReleased(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(131), Int32(0), 0, 0, nil)
+        Key_Event(131, qboolean(0), qboolean(1))
     }
     
     @objc func usePressed(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(101), Int32(1), 0, 0, nil)
+        Key_Event(101, qboolean(1), qboolean(1))
     }
     
     @objc func useReleased(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(101), Int32(0), 0, 0, nil)
+        Key_Event(101, qboolean(0), qboolean(1))
     }
     
     @objc func crouchPressed(_ sender: UIButton) {
         crouching = !crouching
-        Sys_QueEvent(0, Int32(136), crouching ? Int32(1) : Int32(0), 0, 0, nil)
+        Key_Event(136, crouching ? qboolean(1) : qboolean(0), qboolean(1))
     }
     
     @objc func prevWeaponPressed(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(91), Int32(1), 0, 0, nil)
+        Key_Event(91, qboolean(1), qboolean(1))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            Sys_QueEvent(0, Int32(91), Int32(0), 0, 0, nil)
+            Key_Event(91, qboolean(0), qboolean(1))
         }
     }
     
     @objc func nextWeaponPressed(_ sender: UIButton) {
-        Sys_QueEvent(0, Int32(93), Int32(1), 0, 0, nil)
+        Key_Event(93, qboolean(1), qboolean(1))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            Sys_QueEvent(0, Int32(93), Int32(0), 0, 0, nil)
+            Key_Event(93, qboolean(0), qboolean(1))
         }
     }
     
@@ -226,26 +226,26 @@ extension SDL_uikitviewcontroller {
             if joyX > 0.5 {
                 cl_joyscale_x.0 = Int32(min(abs(joyX) * 15, maxJoyValue))
                 cl_joyscale_x.1 = 0
-                Sys_QueEvent(0, Int32(135), Int32(1), 0, 0, nil)
-                Sys_QueEvent(0, Int32(134), Int32(0), 0, 0, nil)
+                Key_Event(135, qboolean(1), qboolean(1))
+                Key_Event(134, qboolean(0), qboolean(1))
             } else if joyX < -0.5 {
                 cl_joyscale_x.1 = Int32(min(abs(joyX) * 15, maxJoyValue))
                 cl_joyscale_x.0 = 0
-                Sys_QueEvent(0, Int32(134), Int32(1), 0, 0, nil)
-                Sys_QueEvent(0, Int32(135), Int32(0), 0, 0, nil)
+                Key_Event(134, qboolean(1), qboolean(1))
+                Key_Event(135, qboolean(0), qboolean(1))
             }
             
             let joyY = deltaY * sens
             if joyY > 0.5 {
                 cl_joyscale_y.0 = Int32(min(abs(joyY) * 20, maxJoyValue))
                 cl_joyscale_y.1 = 0
-                Sys_QueEvent(0, Int32(133), Int32(1), 0, 0, nil)
-                Sys_QueEvent(0, Int32(132), Int32(0), 0, 0, nil)
+                Key_Event(133, qboolean(1), qboolean(1))
+                Key_Event(132, qboolean(0), qboolean(1))
             } else if joyY < -0.5 {
                 cl_joyscale_y.1 = Int32(min(abs(joyY) * 20, maxJoyValue))
                 cl_joyscale_y.0 = 0
-                Sys_QueEvent(0, Int32(132), Int32(1), 0, 0, nil)
-                Sys_QueEvent(0, Int32(133), Int32(0), 0, 0, nil)
+                Key_Event(132, qboolean(1), qboolean(1))
+                Key_Event(133, qboolean(0), qboolean(1))
             }
             
             lastPanPoint = currentPoint
@@ -256,17 +256,16 @@ extension SDL_uikitviewcontroller {
             cl_joyscale_x.1 = 0
             cl_joyscale_y.0 = 0
             cl_joyscale_y.1 = 0
-            Sys_QueEvent(0, Int32(132), Int32(0), 0, 0, nil)
-            Sys_QueEvent(0, Int32(133), Int32(0), 0, 0, nil)
-            Sys_QueEvent(0, Int32(134), Int32(0), 0, 0, nil)
-            Sys_QueEvent(0, Int32(135), Int32(0), 0, 0, nil)
+            Key_Event(132, qboolean(0), qboolean(1))
+            Key_Event(133, qboolean(0), qboolean(1))
+            Key_Event(134, qboolean(0), qboolean(1))
+            Key_Event(135, qboolean(0), qboolean(1))
             
         default:
             break
         }
     }
 }
-
 
 
 extension SDL_uikitviewcontroller: JoystickDelegate {
@@ -278,10 +277,10 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         
         if displacement == 0 {
-            Sys_QueEvent(0, Int32(119), Int32(0), 0, 0, nil)
-            Sys_QueEvent(0, Int32(115), Int32(0), 0, 0, nil)
-            Sys_QueEvent(0, Int32(97),  Int32(0), 0, 0, nil)
-            Sys_QueEvent(0, Int32(100), Int32(0), 0, 0, nil)
+            Key_Event(119, qboolean(0), qboolean(1))
+            Key_Event(115, qboolean(0), qboolean(1))
+            Key_Event(97,  qboolean(0), qboolean(1))
+            Key_Event(100, qboolean(0), qboolean(1))
             return
         }
         
@@ -289,10 +288,9 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
         let dx = sin(radians) * displacement
         let dy = cos(radians) * displacement
         
-        Sys_QueEvent(0, Int32(119), dy < -0.35 ? Int32(1) : Int32(0), 0, 0, nil)
-        Sys_QueEvent(0, Int32(115), dy > 0.35  ? Int32(1) : Int32(0), 0, 0, nil)
-        Sys_QueEvent(0, Int32(97),  dx < -0.35 ? Int32(1) : Int32(0), 0, 0, nil)
-        Sys_QueEvent(0, Int32(100), dx > 0.35  ? Int32(1) : Int32(0), 0, 0, nil)
+        Key_Event(119, dy < -0.35 ? qboolean(1) : qboolean(0), qboolean(1))
+        Key_Event(115, dy > 0.35  ? qboolean(1) : qboolean(0), qboolean(1))
+        Key_Event(97,  dx < -0.35 ? qboolean(1) : qboolean(0), qboolean(1))
+        Key_Event(100, dx > 0.35  ? qboolean(1) : qboolean(0), qboolean(1))
     }
 }
-
