@@ -30,7 +30,6 @@ extension SDL_uikitviewcontroller {
         static var _crouching = false
         static var _factor:CGFloat = UIScreen.main.scale
         
-        
         static var _panGesture = UIPanGestureRecognizer()
         static var _lastPanPoint = CGPoint.zero
         static var _isPanning = false
@@ -121,7 +120,6 @@ extension SDL_uikitviewcontroller {
         set(newValue) { Holder._factor = newValue }
     }
     
-    
     var panGesture: UIPanGestureRecognizer {
         get { return Holder._panGesture }
         set(newValue) { Holder._panGesture = newValue }
@@ -136,45 +134,45 @@ extension SDL_uikitviewcontroller {
     }
     
     @objc func firePressed(_ sender: UIButton) {
-        Key_Event(130, qboolean(1), qboolean(1))
+        Sys_QueEvent(0, Int32(130), Int32(1), 0, 0, nil)
     }
     
     @objc func fireReleased(_ sender: UIButton) {
-        Key_Event(130, qboolean(0), qboolean(1))
+        Sys_QueEvent(0, Int32(130), Int32(0), 0, 0, nil)
     }
     
     @objc func jumpPressed(_ sender: UIButton) {
-        Key_Event(131, qboolean(1), qboolean(1))
+        Sys_QueEvent(0, Int32(131), Int32(1), 0, 0, nil)
     }
     
     @objc func jumpReleased(_ sender: UIButton) {
-        Key_Event(131, qboolean(0), qboolean(1))
+        Sys_QueEvent(0, Int32(131), Int32(0), 0, 0, nil)
     }
     
     @objc func usePressed(_ sender: UIButton) {
-        Key_Event(101, qboolean(1), qboolean(1))
+        Sys_QueEvent(0, Int32(101), Int32(1), 0, 0, nil)
     }
     
     @objc func useReleased(_ sender: UIButton) {
-        Key_Event(101, qboolean(0), qboolean(1))
+        Sys_QueEvent(0, Int32(101), Int32(0), 0, 0, nil)
     }
     
     @objc func crouchPressed(_ sender: UIButton) {
         crouching = !crouching
-        Key_Event(136, crouching ? qboolean(1) : qboolean(0), qboolean(1))
+        Sys_QueEvent(0, Int32(136), crouching ? Int32(1) : Int32(0), 0, 0, nil)
     }
     
     @objc func prevWeaponPressed(_ sender: UIButton) {
-        Key_Event(91, qboolean(1), qboolean(1))
+        Sys_QueEvent(0, Int32(91), Int32(1), 0, 0, nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            Key_Event(91, qboolean(0), qboolean(1))
+            Sys_QueEvent(0, Int32(91), Int32(0), 0, 0, nil)
         }
     }
     
     @objc func nextWeaponPressed(_ sender: UIButton) {
-        Key_Event(93, qboolean(1), qboolean(1))
+        Sys_QueEvent(0, Int32(93), Int32(1), 0, 0, nil)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            Key_Event(93, qboolean(0), qboolean(1))
+            Sys_QueEvent(0, Int32(93), Int32(0), 0, 0, nil)
         }
     }
     
@@ -196,7 +194,6 @@ extension SDL_uikitviewcontroller {
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        
         if !self.view.gestureRecognizers!.contains(panGesture) {
             panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.handleCameraPan(_:)))
             panGesture.maximumNumberOfTouches = 1
@@ -209,7 +206,6 @@ extension SDL_uikitviewcontroller {
         
         switch gesture.state {
         case .began:
-           
             if currentPoint.x > (self.view.bounds.width / 2.0) {
                 lastPanPoint = currentPoint
                 isPanning = true
@@ -226,47 +222,44 @@ extension SDL_uikitviewcontroller {
             let sens: CGFloat = 1.5
             let maxJoyValue: CGFloat = 40.0
             
-            
             let joyX = deltaX * sens
             if joyX > 0.5 {
                 cl_joyscale_x.0 = Int32(min(abs(joyX) * 15, maxJoyValue))
                 cl_joyscale_x.1 = 0
-                Key_Event(135, qboolean(1), qboolean(1)) 
-                Key_Event(134, qboolean(0), qboolean(1)) 
+                Sys_QueEvent(0, Int32(135), Int32(1), 0, 0, nil)
+                Sys_QueEvent(0, Int32(134), Int32(0), 0, 0, nil)
             } else if joyX < -0.5 {
                 cl_joyscale_x.1 = Int32(min(abs(joyX) * 15, maxJoyValue))
                 cl_joyscale_x.0 = 0
-                Key_Event(134, qboolean(1), qboolean(1)) 
-                Key_Event(135, qboolean(0), qboolean(1)) 
+                Sys_QueEvent(0, Int32(134), Int32(1), 0, 0, nil)
+                Sys_QueEvent(0, Int32(135), Int32(0), 0, 0, nil)
             }
-            
             
             let joyY = deltaY * sens
             if joyY > 0.5 {
                 cl_joyscale_y.0 = Int32(min(abs(joyY) * 20, maxJoyValue))
                 cl_joyscale_y.1 = 0
-                Key_Event(133, qboolean(1), qboolean(1)) 
-                Key_Event(132, qboolean(0), qboolean(1))
+                Sys_QueEvent(0, Int32(133), Int32(1), 0, 0, nil)
+                Sys_QueEvent(0, Int32(132), Int32(0), 0, 0, nil)
             } else if joyY < -0.5 {
                 cl_joyscale_y.1 = Int32(min(abs(joyY) * 20, maxJoyValue))
                 cl_joyscale_y.0 = 0
-                Key_Event(132, qboolean(1), qboolean(1)) 
-                Key_Event(133, qboolean(0), qboolean(1)) 
+                Sys_QueEvent(0, Int32(132), Int32(1), 0, 0, nil)
+                Sys_QueEvent(0, Int32(133), Int32(0), 0, 0, nil)
             }
             
             lastPanPoint = currentPoint
             
         case .ended, .cancelled, .failed:
             isPanning = false
-            
             cl_joyscale_x.0 = 0
             cl_joyscale_x.1 = 0
             cl_joyscale_y.0 = 0
             cl_joyscale_y.1 = 0
-            Key_Event(132, qboolean(0), qboolean(1))
-            Key_Event(133, qboolean(0), qboolean(1))
-            Key_Event(134, qboolean(0), qboolean(1))
-            Key_Event(135, qboolean(0), qboolean(1))
+            Sys_QueEvent(0, Int32(132), Int32(0), 0, 0, nil)
+            Sys_QueEvent(0, Int32(133), Int32(0), 0, 0, nil)
+            Sys_QueEvent(0, Int32(134), Int32(0), 0, 0, nil)
+            Sys_QueEvent(0, Int32(135), Int32(0), 0, 0, nil)
             
         default:
             break
@@ -285,10 +278,10 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         
         if displacement == 0 {
-            Key_Event(119, qboolean(0), qboolean(1)) // W off
-            Key_Event(115, qboolean(0), qboolean(1)) // S off
-            Key_Event(97,  qboolean(0), qboolean(1)) // A off
-            Key_Event(100, qboolean(0), qboolean(1)) // D off
+            Sys_QueEvent(0, Int32(119), Int32(0), 0, 0, nil)
+            Sys_QueEvent(0, Int32(115), Int32(0), 0, 0, nil)
+            Sys_QueEvent(0, Int32(97),  Int32(0), 0, 0, nil)
+            Sys_QueEvent(0, Int32(100), Int32(0), 0, 0, nil)
             return
         }
         
@@ -296,13 +289,10 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
         let dx = sin(radians) * displacement
         let dy = cos(radians) * displacement
         
-        
-        Key_Event(119, dy < -0.35 ? qboolean(1) : qboolean(0), qboolean(1))
-        Key_Event(115, dy > 0.35  ? qboolean(1) : qboolean(0), qboolean(1))
-        
-        
-        Key_Event(97,  dx < -0.35 ? qboolean(1) : qboolean(0), qboolean(1))
-        Key_Event(100, dx > 0.35  ? qboolean(1) : qboolean(0), qboolean(1))
+        Sys_QueEvent(0, Int32(119), dy < -0.35 ? Int32(1) : Int32(0), 0, 0, nil)
+        Sys_QueEvent(0, Int32(115), dy > 0.35  ? Int32(1) : Int32(0), 0, 0, nil)
+        Sys_QueEvent(0, Int32(97),  dx < -0.35 ? Int32(1) : Int32(0), 0, 0, nil)
+        Sys_QueEvent(0, Int32(100), dx > 0.35  ? Int32(1) : Int32(0), 0, 0, nil)
     }
 }
 
