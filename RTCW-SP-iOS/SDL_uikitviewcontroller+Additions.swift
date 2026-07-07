@@ -348,7 +348,7 @@ extension SDL_uikitviewcontroller {
         }
     }
 
-    @objc func handleCameraPan(_ gesture: UIPanGestureRecognizer) {
+       @objc func handleCameraPan(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: self.view)
         
         switch gesture.state {
@@ -364,29 +364,79 @@ extension SDL_uikitviewcontroller {
         case .changed:
             guard isPanning else { return }
             
+           
             let deltaX = currentPoint.x - lastPanPoint.x
             let deltaY = currentPoint.y - lastPanPoint.y
             
             
-            let sensitivity: CGFloat = 4.5
+            let sensitivityX: CGFloat = 0.8
+            let sensitivityY: CGFloat = 0.8
             
-            let mouseX = Int32(deltaX * sensitivity)
-            let mouseY = Int32(deltaY * sensitivity)
+            let joyX = deltaX * sensitivityX
+            let joyY = deltaY * sensitivityY
             
             
-            CL_MouseEvent(mouseX, mouseY, Sys_Milliseconds(), qboolean(rawValue: 0))
+            if joyX > 0.1 {
+               
+                cl_joyscale_x.0 = Int32(abs(joyX) * 60)
+                cl_joyscale_x.1 = 0
+                Key_Event(135, qboolean(rawValue: 1), qboolean(rawValue: 1)) 
+                Key_Event(134, qboolean(rawValue: 0), qboolean(rawValue: 1)) 
+            } else if joyX < -0.1 {
+               
+                cl_joyscale_x.1 = Int32(abs(joyX) * 20) 
+                cl_joyscale_x.0 = 0
+                Key_Event(134, qboolean(rawValue: 1), qboolean(rawValue: 1)) 
+                Key_Event(135, qboolean(rawValue: 0), qboolean(rawValue: 1)) 
+            } else {
+                
+                cl_joyscale_x.0 = 0
+                cl_joyscale_x.1 = 0
+                Key_Event(134, qboolean(rawValue: 0), qboolean(rawValue: 1))
+                Key_Event(135, qboolean(rawValue: 0), qboolean(rawValue: 1))
+            }
+            
+            
+            if joyY > 0.1 {
+                
+                cl_joyscale_y.0 = Int32(abs(joyY) * 60)
+                cl_joyscale_y.1 = 0
+                Key_Event(133, qboolean(rawValue: 1), qboolean(rawValue: 1)) 
+                Key_Event(132, qboolean(rawValue: 0), qboolean(rawValue: 1)) 
+            } else if joyY < -0.1 {
+                
+                cl_joyscale_y.1 = Int32(abs(joyY) * 60)
+                cl_joyscale_y.0 = 0
+                Key_Event(132, qboolean(rawValue: 1), qboolean(rawValue: 1)) 
+                Key_Event(133, qboolean(rawValue: 0), qboolean(rawValue: 1)) 
+            } else {
+               
+                cl_joyscale_y.0 = 0
+                cl_joyscale_y.1 = 0
+                Key_Event(132, qboolean(rawValue: 0), qboolean(rawValue: 1))
+                Key_Event(133, qboolean(rawValue: 0), qboolean(rawValue: 1))
+            }
+            
             
             lastPanPoint = currentPoint
             
         case .ended, .cancelled, .failed:
             isPanning = false
+          
+            cl_joyscale_x.0 = 0
+            cl_joyscale_x.1 = 0
+            cl_joyscale_y.0 = 0
+            cl_joyscale_y.1 = 0
+            Key_Event(132, qboolean(rawValue: 0), qboolean(rawValue: 1))
+            Key_Event(133, qboolean(rawValue: 0), qboolean(rawValue: 1))
+            Key_Event(134, qboolean(rawValue: 0), qboolean(rawValue: 1))
+            Key_Event(135, qboolean(rawValue: 0), qboolean(rawValue: 1))
             
         default:
             break
         }
     }
 
-} 
 
 extension SDL_uikitviewcontroller: JoystickDelegate {
     
