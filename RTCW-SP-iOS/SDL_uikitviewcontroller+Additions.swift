@@ -29,6 +29,23 @@ extension SDL_uikitviewcontroller {
         static var _nextWeaponButton = UIButton()
         static var _crouching = false
         static var _factor:CGFloat = UIScreen.main.scale
+        static var _panGesture = UIPanGestureRecognizer()
+        static var _lastPanPoint = CGPoint.zero
+        static var _isPanning = false
+    }
+    
+    
+    var panGesture: UIPanGestureRecognizer {
+        get { return Holder._panGesture }
+        set(newValue) { Holder._panGesture = newValue }
+    }
+    var lastPanPoint: CGPoint {
+        get { return Holder._lastPanPoint }
+        set(newValue) { Holder._lastPanPoint = newValue }
+    }
+    var isPanning: Bool {
+        get { return Holder._isPanning }
+        set(newValue) { Holder._isPanning = newValue }
     }
     
     var fireButton:UIButton {
@@ -315,8 +332,51 @@ extension SDL_uikitviewcontroller {
     }
     
     open override func viewDidLoad() { super.viewDidLoad() }
-    open override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated) }
-}
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.handleCameraPan(_:)))
+        panGesture.maximumNumberOfTouches = 1
+        self.view.addGestureRecognizer(panGesture)
+    }
+@objc func handleCameraPan(_ gesture: UIPanGestureRecognizer) {
+        let currentPoint = gesture.location(in: self.view)
+        
+        switch gesture.state {
+        case .began:
+           
+            if currentPoint.x > (self.view.bounds.width / 2.0) {
+                lastPanPoint = currentPoint
+                isPanning = true
+            } else {
+                isPanning = false
+            }
+            
+        case .changed:
+            guard isPanning else { return }
+            
+            
+            let deltaX = currentPoint.x - lastPanPoint.x
+            let deltaY = currentPoint.y - lastPanPoint.y
+            
+            
+            let sensitivity: CGFloat = 4.5
+            
+            let mouseX = Int32(deltaX * sensitivity)
+            let mouseY = Int32(deltaY * sensitivity)
+            
+            
+            CL_MouseEvent(mouseX, mouseY, Sys_Milliseconds(), qboolean(rawValue: 0))
+            
+            lastPanPoint = currentPoint
+            
+        case .ended, .cancelled, .failed:
+            isPanning = false
+            
+        default:
+            break
+        }
+    }
 
 extension SDL_uikitviewcontroller: JoystickDelegate {
     
