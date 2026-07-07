@@ -68,21 +68,22 @@ class GameViewController: UIViewController {
         }
     }
     
+
+    var cameraTouch: UITouch?
+    var lastPoint: CGPoint = .zero
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
-            
             for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
             
-            let screenWidth = view.bounds.size.width
             for touch in touches {
-                let point = touch.location(in: view)
-                if point.x > screenWidth / 2 {
+                let point = touch.location(in: self.view)
+                if point.x > self.view.bounds.size.width / 2 {
                     cameraTouch = touch
-                    lastCameraPoint = point
-                    break 
+                    lastPoint = point
                 }
             }
             super.touchesBegan(touches, with: event)
@@ -97,35 +98,25 @@ class GameViewController: UIViewController {
         } else {
             
             if let touch = cameraTouch, touches.contains(touch) {
-                let currentPoint = touch.location(in: view)
-                
-                let deltaX = currentPoint.x - lastCameraPoint.x
-                let deltaY = currentPoint.y - lastCameraPoint.y
-                
-                lastCameraPoint = currentPoint
-                
-                )
-                let sensitivity: CGFloat = 2.5
-                let dx = Int32(deltaX * sensitivity)
-                let dy = Int32(deltaY * sensitivity)
+                let currentPoint = touch.location(in: self.view)
+                let dx = Int32((currentPoint.x - lastPoint.x) * 2.0)
+                let dy = Int32((currentPoint.y - lastPoint.y) * 2.0)
                 
                 if dx != 0 || dy != 0 {
                     
-                    CL_MouseEvent(dx, dy, Sys_Milliseconds(), qfalse)
+                    CL_MouseEvent(dx, dy, Sys_Milliseconds(), 0) 
                 }
+                lastPoint = currentPoint
             }
             super.touchesMoved(touches, with: event)
         }
     }
-    
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
-            
-        Key_Event(K_MOUSE1, qboolean(rawValue: 1), qboolean(rawValue: 0))
-        Key_Event(K_MOUSE1, qboolean(rawValue: 0), qboolean(rawValue: 0))  
-            
+            KeyEvent(key: K_MOUSE1, down: true)
+            KeyEvent(key: K_MOUSE1, down: false)
         } else {
-            
             if let touch = cameraTouch, touches.contains(touch) {
                 cameraTouch = nil
             }
