@@ -1,3 +1,4 @@
+
 //
 //  SDL2ViewController+Additions.swift
 //  Quake2-iOS
@@ -9,6 +10,8 @@ import UIKit
 
 extension SDL_uikitviewcontroller {
     
+    // A method of getting around the fact that Swift extensions cannot have stored properties
+    // https://medium.com/@valv0/computed-properties-and-extensions-a-pure-swift-approach-64733768112c
     struct Holder {
         static var _fireButton = UIButton()
         static var _jumpButton = UIButton()
@@ -27,61 +30,388 @@ extension SDL_uikitviewcontroller {
         static var _nextWeaponButton = UIButton()
         static var _crouching = false
         static var _factor:CGFloat = UIScreen.main.scale
+        static var _panGesture = UIPanGestureRecognizer()
+        static var _lastPanPoint = CGPoint.zero
+        static var _isPanning = false
     }
     
-    var fireButton: UIButton {
+    
+    var panGesture: UIPanGestureRecognizer {
+        get { return Holder._panGesture }
+        set(newValue) { Holder._panGesture = newValue }
+    }
+    var lastPanPoint: CGPoint {
+        get { return Holder._lastPanPoint }
+        set(newValue) { Holder._lastPanPoint = newValue }
+    }
+    var isPanning: Bool {
+        get { return Holder._isPanning }
+        set(newValue) { Holder._isPanning = newValue }
+    }
+    
+    var fireButton:UIButton {
         get { return Holder._fireButton }
         set(newValue) { Holder._fireButton = newValue }
     }
     
-    var jumpButton: UIButton {
+    var jumpButton:UIButton {
         get { return Holder._jumpButton }
         set(newValue) { Holder._jumpButton = newValue }
     }
     
-    var useButton: UIButton {
+    var useButton:UIButton {
         get { return Holder._useButton }
         set(newValue) { Holder._useButton = newValue }
     }
     
-    var crouchButton: UIButton {
+    var crouchButton:UIButton {
         get { return Holder._crouchButton }
         set(newValue) { Holder._crouchButton = newValue }
     }
     
-    var joystickView: JoyStickView {
+    var joystickView:JoyStickView {
         get { return Holder._joystickView }
         set(newValue) { Holder._joystickView = newValue }
     }
+
+    var tildeButton:UIButton {
+        get { return Holder._tildeButton }
+        set(newValue) { Holder._tildeButton = newValue }
+    }
+
+    var escapeButton:UIButton {
+        get { return Holder._escapeButton }
+        set(newValue) { Holder._escapeButton = newValue }
+    }
+
+    var expandButton:UIButton {
+        get { return Holder._expandButton }
+        set(newValue) { Holder._expandButton = newValue }
+    }
     
-    var f1Button: UIButton {
+    var quickLoadButton:UIButton {
+        get { return Holder._quickLoadButton }
+        set(newValue) { Holder._quickLoadButton = newValue }
+    }
+    
+    var quickSaveButton:UIButton {
+        get { return Holder._quickSaveButton }
+        set(newValue) { Holder._quickSaveButton = newValue }
+    }
+    
+    var buttonStack:UIStackView {
+        get { return Holder._buttonStack }
+        set(newValue) { Holder._buttonStack = newValue }
+    }
+
+    var buttonStackExpanded:Bool {
+        get { return Holder._buttonStackExpanded }
+        set(newValue) { Holder._buttonStackExpanded = newValue }
+    }
+    
+    var f1Button:UIButton {
         get { return Holder._f1Button }
         set(newValue) { Holder._f1Button = newValue }
     }
-
-    var prevWeaponButton: UIButton {
+    
+    var prevWeaponButton:UIButton {
         get { return Holder._prevWeaponButton }
         set(newValue) { Holder._prevWeaponButton = newValue }
     }
-    
-    var nextWeaponButton: UIButton {
+
+    var nextWeaponButton:UIButton {
         get { return Holder._nextWeaponButton }
         set(newValue) { Holder._nextWeaponButton = newValue }
     }
 
+    var crouching:Bool {
+        get { return Holder._crouching }
+        set(newValue) { Holder._crouching = newValue }
+    }
+    
+    var factor:CGFloat {
+        get { return Holder._factor }
+        set(newValue) { Holder._factor = newValue }
+    }
+
+    @objc func fireButton(rect: CGRect) -> UIButton {
+        fireButton = UIButton(frame: CGRect(x: rect.width - 155, y: rect.height - 90, width: 75, height: 75))
+        fireButton.setTitle("FIRE", for: .normal)
+        fireButton.setBackgroundImage(UIImage(named: "JoyStickBase")!, for: .normal)
+        fireButton.addTarget(self, action: #selector(self.firePressed), for: .touchDown)
+        fireButton.addTarget(self, action: #selector(self.fireReleased), for: .touchUpInside)
+        fireButton.alpha = 0.5
+        return fireButton
+    }
+    
+    @objc func jumpButton(rect: CGRect) -> UIButton {
+        jumpButton = UIButton(frame: CGRect(x: rect.width - 90, y: rect.height - 135, width: 75, height: 75))
+        jumpButton.setTitle("JUMP", for: .normal)
+        jumpButton.setBackgroundImage(UIImage(named: "JoyStickBase")!, for: .normal)
+        jumpButton.addTarget(self, action: #selector(self.jumpPressed), for: .touchDown)
+        jumpButton.addTarget(self, action: #selector(self.jumpReleased), for: .touchUpInside)
+        jumpButton.alpha = 0.5
+        return jumpButton
+    }
+    
+    @objc func useButton(rect: CGRect) -> UIButton {
+        useButton = UIButton(frame: CGRect(x: rect.width - 90, y: rect.height - 210, width: 75, height: 75))
+        useButton.setTitle("USE", for: .normal)
+        useButton.setBackgroundImage(UIImage(named: "JoyStickBase")!, for: .normal)
+        useButton.addTarget(self, action: #selector(self.usePressed), for: .touchDown)
+        useButton.addTarget(self, action: #selector(self.useReleased), for: .touchUpInside)
+        useButton.alpha = 0.5
+        return useButton
+    }
+    
+    @objc func crouchButton(rect: CGRect) -> UIButton {
+        crouchButton = UIButton(frame: CGRect(x: rect.width - 95, y: 10, width: 85, height: 30))
+        crouchButton.setTitle("CROUCH", for: .normal)
+        crouchButton.backgroundColor = UIColor.gray
+        crouchButton.addTarget(self, action: #selector(self.crouchPressed), for: .touchDown)
+        crouchButton.alpha = 0.5
+        return crouchButton
+    }
+    
+    @objc func joyStick(rect: CGRect) -> JoyStickView {
+        let size = CGSize(width: 100.0, height: 100.0)
+        let joystick1Frame = CGRect(origin: CGPoint(x: 50.0, y: (rect.height - size.height - 50.0)), size: size)
+        joystickView = JoyStickView(frame: joystick1Frame)
+        joystickView.delegate = self
+        joystickView.movable = false
+        joystickView.alpha = 0.5
+        joystickView.baseAlpha = 0.5
+        joystickView.handleTintColor = UIColor.darkGray
+        return joystickView
+    }
+    
+    @objc func buttonStack(rect: CGRect) -> UIStackView {
+        expandButton = UIButton(type: .custom)
+        expandButton.setTitle(" > ", for: .normal)
+        expandButton.addTarget(self, action: #selector(self.expand), for: .touchUpInside)
+        expandButton.sizeToFit()
+        expandButton.alpha = 0.5
+        expandButton.frame.size.width = 50
+
+        tildeButton = UIButton(type: .custom)
+        tildeButton.setTitle(" ~ ", for: .normal)
+        tildeButton.addTarget(self, action: #selector(self.tildePressed), for: .touchDown)
+        tildeButton.addTarget(self, action: #selector(self.tildeReleased), for: .touchUpInside)
+        tildeButton.alpha = 0
+        tildeButton.isHidden = true
+
+        escapeButton = UIButton(type: .custom)
+        escapeButton.setTitle(" ESC ", for: .normal)
+        escapeButton.addTarget(self, action: #selector(self.escapePressed), for: .touchDown)
+        escapeButton.addTarget(self, action: #selector(self.escapeReleased), for: .touchUpInside)
+        escapeButton.layer.borderColor = UIColor.white.cgColor
+        escapeButton.layer.borderWidth = CGFloat(1)
+        escapeButton.alpha = 0
+        escapeButton.isHidden = true
+
+        quickSaveButton = UIButton(type: .custom)
+        quickSaveButton.setTitle(" QS ", for: .normal)
+        quickSaveButton.addTarget(self, action: #selector(self.quickSavePressed), for: .touchDown)
+        quickSaveButton.addTarget(self, action: #selector(self.quickSaveReleased), for: .touchUpInside)
+        quickSaveButton.layer.borderColor = UIColor.white.cgColor
+        quickSaveButton.layer.borderWidth = CGFloat(1)
+        quickSaveButton.alpha = 0
+        quickSaveButton.isHidden = true
+
+        quickLoadButton = UIButton(type: .custom)
+        quickLoadButton.setTitle(" QL ", for: .normal)
+        quickLoadButton.addTarget(self, action: #selector(self.quickLoadPressed), for: .touchDown)
+        quickLoadButton.addTarget(self, action: #selector(self.quickLoadReleased), for: .touchUpInside)
+        quickLoadButton.layer.borderColor = UIColor.white.cgColor
+        quickLoadButton.layer.borderWidth = CGFloat(1)
+        quickLoadButton.alpha = 0
+        quickLoadButton.isHidden = true
+
+        buttonStack = UIStackView(frame: .zero)
+        buttonStack.frame.origin = CGPoint(x: 50, y: 50)
+        buttonStack.translatesAutoresizingMaskIntoConstraints = false
+        buttonStack.axis = .horizontal
+        buttonStack.spacing = 8.0
+        buttonStack.alignment = .leading
+        buttonStack.addArrangedSubview(expandButton)
+        buttonStack.addArrangedSubview(escapeButton)
+        buttonStack.addArrangedSubview(quickSaveButton)
+        buttonStack.addArrangedSubview(quickLoadButton)
+
+        return buttonStack
+    }
+    
+    @objc func f1Button(rect: CGRect) -> UIButton {
+        f1Button = UIButton(frame: CGRect(x: rect.width - 40, y: 10, width: 30, height: 30))
+        f1Button.setTitle(" F1 ", for: .normal)
+        f1Button.addTarget(self, action: #selector(self.f1Pressed), for: .touchDown)
+        f1Button.addTarget(self, action: #selector(self.f1Released), for: .touchUpInside)
+        f1Button.layer.borderColor = UIColor.white.cgColor
+        f1Button.layer.borderWidth = CGFloat(1)
+        f1Button.alpha = 0.5
+        return f1Button
+    }
+    
+    @objc func prevWeaponButton(rect: CGRect) -> UIButton {
+        prevWeaponButton = UIButton(frame: CGRect(x: (rect.width / 3), y: rect.height/2, width: (rect.width / 3), height: rect.height/2))
+        prevWeaponButton.addTarget(self, action: #selector(self.prevWeaponPressed), for: .touchDown)
+        prevWeaponButton.addTarget(self, action: #selector(self.prevWeaponReleased), for: .touchUpInside)
+        return prevWeaponButton
+    }
+    
+    @objc func nextWeaponButton(rect: CGRect) -> UIButton {
+        nextWeaponButton = UIButton(frame: CGRect(x: (rect.width / 3), y: 0, width: (rect.width / 3), height: rect.height/2))
+        nextWeaponButton.addTarget(self, action: #selector(self.nextWeaponPressed), for: .touchDown)
+        nextWeaponButton.addTarget(self, action: #selector(self.nextWeaponReleased), for: .touchUpInside)
+        return nextWeaponButton
+    }
+
+    @objc func firePressed(sender: UIButton!) { Key_Event(137, qboolean(1), qboolean(1)) }
+    @objc func fireReleased(sender: UIButton!) { Key_Event(137, qboolean(0), qboolean(1)) }
+    
+    @objc func jumpPressed(sender: UIButton!) { Key_Event(32, qboolean(1), qboolean(1)) }
+    @objc func jumpReleased(sender: UIButton!) { Key_Event(32, qboolean(0), qboolean(1)) }
+    
+    @objc func usePressed(sender: UIButton!) { Key_Event(102, qboolean(1), qboolean(1)) }
+    @objc func useReleased(sender: UIButton!) { Key_Event(102, qboolean(0), qboolean(1)) }
+    
+    @objc func crouchPressed(sender: UIButton!) {
+        crouching = !crouching
+        Key_Event(99, crouching ? qboolean(1) : qboolean(0), qboolean(1))
+    }
+    
+    @objc func tildePressed(sender: UIButton!) {}
+    @objc func tildeReleased(sender: UIButton!) {}
+    
+    @objc func escapePressed(sender: UIButton!) { Key_Event(27, qboolean(1), qboolean(1)) }
+    @objc func escapeReleased(sender: UIButton!) { Key_Event(27, qboolean(0), qboolean(1)) }
+    
+    @objc func quickSavePressed(sender: UIButton!) { Key_Event(150, qboolean(1), qboolean(1)) }
+    @objc func quickSaveReleased(sender: UIButton!) { Key_Event(150, qboolean(0), qboolean(1)) }
+    
+    @objc func quickLoadPressed(sender: UIButton!) { Key_Event(153, qboolean(1), qboolean(1)) }
+    @objc func quickLoadReleased(sender: UIButton!) { Key_Event(153, qboolean(0), qboolean(1)) }
+    
+    @objc func f1Pressed(sender: UIButton!) { Key_Event(145, qboolean(1), qboolean(1)) }
+    @objc func f1Released(sender: UIButton!) { Key_Event(145, qboolean(0), qboolean(1)) }
+    
+    @objc func prevWeaponPressed(sender: UIButton!) { Key_Event(183, qboolean(1), qboolean(1)) }
+    @objc func prevWeaponReleased(sender: UIButton!) { Key_Event(183, qboolean(0), qboolean(1)) }
+    
+    @objc func nextWeaponPressed(sender: UIButton!) { Key_Event(184, qboolean(1), qboolean(1)) }
+    @objc func nextWeaponReleased(sender: UIButton!) { Key_Event(184, qboolean(0), qboolean(1)) }
+
+    func Key_Event(_ key: Int32, _ down: qboolean, _ special: qboolean) {
+        CL_KeyEvent(key, down, UInt32(Sys_Milliseconds()))
+    }
+
+    @objc func expand(_ sender: Any) {
+        buttonStackExpanded = !buttonStackExpanded
+        UIView.animate(withDuration: 0.5) {
+            self.expandButton.setTitle(self.buttonStackExpanded ? " < " : " > ", for: .normal)
+            self.expandButton.alpha = self.buttonStackExpanded ? 1 : 0.5
+            self.escapeButton.isHidden = !self.buttonStackExpanded
+            self.escapeButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.tildeButton.isHidden = !self.buttonStackExpanded
+            self.tildeButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.quickLoadButton.isHidden = !self.buttonStackExpanded
+            self.quickLoadButton.alpha = self.buttonStackExpanded ? 1 : 0
+            self.quickSaveButton.isHidden = !self.buttonStackExpanded
+            self.quickSaveButton.alpha = self.buttonStackExpanded ? 1 : 0
+        }
+    }
+    
+    
+    
+    @objc func toggleControls(_ hide: Bool) {
+        self.fireButton.isHidden = hide
+        self.jumpButton.isHidden = hide
+        self.useButton.isHidden = hide
+        self.crouchButton.isHidden = hide
+        self.joystickView.isHidden = hide
+        self.buttonStack.isHidden = hide
+        self.prevWeaponButton.isHidden = hide
+        self.nextWeaponButton.isHidden = hide
+    }
+    
+    open override func viewDidLoad() { 
+        super.viewDidLoad() 
+    }
+    
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
+        
+        if !self.view.gestureRecognizers!.contains(panGesture) {
+            panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.handleCameraPan(_:)))
+            panGesture.maximumNumberOfTouches = 1
+            panGesture.delegate = self
+            self.view.addGestureRecognizer(panGesture)
+        }
+    }
+
+       @objc func handleCameraPan(_ gesture: UIPanGestureRecognizer) {
+        let currentPoint = gesture.location(in: self.view)
+        
+        switch gesture.state {
+        case .began:
+            
+            if currentPoint.x > (self.view.bounds.width / 2.0) {
+                lastPanPoint = currentPoint
+                isPanning = true
+            } else {
+                isPanning = false
+            }
+            
+        case .changed:
+            guard isPanning else { return }
+
+            let deltaX = currentPoint.x - lastPanPoint.x
+            let deltaY = currentPoint.y - lastPanPoint.y
+            lastPanPoint = currentPoint
+
+            let sensitivity: CGFloat = 4.0
+            let dx = Int32(deltaX * sensitivity)
+            let dy = Int32(deltaY * sensitivity)
+
+            if dx != 0 || dy != 0 {
+                // qfalse -> relative delta, как настоящее движение мыши для геймплейного look,
+                // а не qtrue, который используется для абсолютных координат в UI-меню
+                CL_MouseEvent(dx, dy, Sys_Milliseconds(), qfalse)
+            }
+            
+        case .ended, .cancelled, .failed:
+            isPanning = false
+            
+        default:
+            break
+        }
+    }
+}
+
+extension SDL_uikitviewcontroller: UIGestureRecognizerDelegate {
+    // Не даём свайпу камеры перехватывать тач, начавшийся на игровых кнопках
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                                   shouldReceive touch: UITouch) -> Bool {
+        let point = touch.location(in: self.view)
+        if fireButton.frame.contains(point) { return false }
+        if jumpButton.frame.contains(point) { return false }
+        if useButton.frame.contains(point) { return false }
+        if crouchButton.frame.contains(point) { return false }
+        if joystickView.frame.contains(point) { return false }
+        return true
     }
 }
 
 extension SDL_uikitviewcontroller: JoystickDelegate {
     
     func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-       
+
     }
 
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
+        
+        
         if displacement == 0 {
             Key_Event(119, qboolean(rawValue: 0), qboolean(rawValue: 1)) // off W
             Key_Event(115, qboolean(rawValue: 0), qboolean(rawValue: 1)) // off S
@@ -94,9 +424,10 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
         let dx = sin(radians) * displacement
         let dy = cos(radians) * displacement
         
+        
         Key_Event(119, dy < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // W
         Key_Event(115, dy > 0.35  ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // S
         Key_Event(97,  dx < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // A
         Key_Event(100, dx > 0.35  ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // D
     }
-}
+} 
