@@ -374,7 +374,8 @@ extension SDL_uikitviewcontroller {
             let dy = Int32(deltaY * sensitivity)
 
             if dx != 0 || dy != 0 {
-
+                // qfalse -> relative delta, как настоящее движение мыши для геймплейного look,
+                // а не qtrue, который используется для абсолютных координат в UI-меню
                 CL_MouseEvent(dx, dy, Sys_Milliseconds(), qfalse)
             }
             
@@ -388,9 +389,9 @@ extension SDL_uikitviewcontroller {
 }
 
 extension SDL_uikitviewcontroller: UIGestureRecognizerDelegate {
-    
-    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
-                            shouldReceive touch: UITouch) -> Bool {
+    // Не даём свайпу камеры перехватывать тач, начавшийся на игровых кнопках
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                                   shouldReceive touch: UITouch) -> Bool {
         let point = touch.location(in: self.view)
         if fireButton.frame.contains(point) { return false }
         if jumpButton.frame.contains(point) { return false }
