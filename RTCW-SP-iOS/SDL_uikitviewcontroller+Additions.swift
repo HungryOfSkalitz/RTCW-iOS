@@ -436,7 +436,7 @@ extension SDL_uikitviewcontroller {
             break
         }
     }
-]
+}
 
 extension SDL_uikitviewcontroller: JoystickDelegate {
     
