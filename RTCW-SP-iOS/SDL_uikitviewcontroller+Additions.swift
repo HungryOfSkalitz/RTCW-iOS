@@ -327,11 +327,10 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         
         if displacement == 0 {
-            Key_Event(119, qboolean(0), qboolean(1)) // W
-            Key_Event(115, qboolean(0), qboolean(1)) // S
-            Key_Event(97,  qboolean(0), qboolean(1)) // A
-            Key_Event(100, qboolean(1), qboolean(0)) // D 
-            Key_Event(100, qboolean(0), qboolean(1)) // D
+            Key_Event(119, qboolean(rawValue: 0), qboolean(rawValue: 1)) // W
+            Key_Event(115, qboolean(rawValue: 0), qboolean(rawValue: 1)) // S
+            Key_Event(97,  qboolean(rawValue: 0), qboolean(rawValue: 1)) // A
+            Key_Event(100, qboolean(rawValue: 0), qboolean(rawValue: 1)) // D
             return
         }
         
@@ -341,9 +340,9 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
         let dy = cos(radians) * displacement
         
         
-        Key_Event(119, dy > 0.35 ? qboolean(1) : qboolean(0), qboolean(1)) // W
-        Key_Event(115, dy < -0.35 ? qboolean(1) : qboolean(0), qboolean(1)) // S
-        Key_Event(97,  dx < -0.35 ? qboolean(1) : qboolean(0), qboolean(1)) // A
-        Key_Event(100, dx > 0.35 ? qboolean(1) : qboolean(0), qboolean(1)) // D
+        Key_Event(119, dy > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // W
+        Key_Event(115, dy < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // S
+        Key_Event(97,  dx < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // A
+        Key_Event(100, dx > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // D
     }
 }
