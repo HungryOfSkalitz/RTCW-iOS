@@ -324,25 +324,32 @@ extension SDL_uikitviewcontroller: JoystickDelegate {
         
     }
 
-    func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
+func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         
+
+        let cmd = "in_mouse 1\n"
+        let cString = cmd.cString(using: .ascii)
+        
+        
+      
         if displacement == 0 {
-            Key_Event(119, qboolean(rawValue: 0), qboolean(rawValue: 1)) // W
-            Key_Event(115, qboolean(rawValue: 0), qboolean(rawValue: 1)) // S
-            Key_Event(97,  qboolean(rawValue: 0), qboolean(rawValue: 1)) // A
-            Key_Event(100, qboolean(rawValue: 0), qboolean(rawValue: 1)) // D
+            Key_Event(119, qboolean(rawValue: 0), qboolean(rawValue: 1)) // W off
+            Key_Event(115, qboolean(rawValue: 0), qboolean(rawValue: 1)) // S off
+            Key_Event(97,  qboolean(rawValue: 0), qboolean(rawValue: 1)) // A off
+            Key_Event(100, qboolean(rawValue: 0), qboolean(rawValue: 1)) // D off
             return
         }
-        
         
         let radians = (180.0 - angle) * CGFloat.pi / 180.0
         let dx = sin(radians) * displacement
         let dy = cos(radians) * displacement
         
         
-        Key_Event(119, dy > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // W
-        Key_Event(115, dy < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // S
-        Key_Event(97,  dx < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // A
-        Key_Event(100, dx > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // D
+        Key_Event(119, dy < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // W
+        Key_Event(115, dy > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1))  // S
+        
+     
+        Key_Event(97,  dx < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1))  // A 
+        Key_Event(100, dx > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1))   // D 
     }
 }
