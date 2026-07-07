@@ -2,7 +2,7 @@ import UIKit
 import CoreGraphics
 
 
-protocol JoystickDelegate: class {
+protocol JoystickDelegate: AnyObject {
     
     func handleJoyStick(angle: CGFloat, displacement: CGFloat)
     func handleJoyStickPosition(x: CGFloat, y: CGFloat)
