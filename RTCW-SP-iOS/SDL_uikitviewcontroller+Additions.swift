@@ -320,6 +320,8 @@ extension SDL_uikitviewcontroller {
         }
     }
     
+    
+    
     @objc func toggleControls(_ hide: Bool) {
         self.fireButton.isHidden = hide
         self.jumpButton.isHidden = hide
@@ -331,20 +333,27 @@ extension SDL_uikitviewcontroller {
         self.nextWeaponButton.isHidden = hide
     }
     
-    open override func viewDidLoad() { super.viewDidLoad() }
+    open override func viewDidLoad() { 
+        super.viewDidLoad() 
+    }
+    
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.handleCameraPan(_:)))
-        panGesture.maximumNumberOfTouches = 1
-        self.view.addGestureRecognizer(panGesture)
+        
+        if !self.view.gestureRecognizers!.contains(panGesture) {
+            panGesture = UIPanGestureRecognizer(target: self, action: #selector(self.handleCameraPan(_:)))
+            panGesture.maximumNumberOfTouches = 1
+            self.view.addGestureRecognizer(panGesture)
+        }
     }
-@objc func handleCameraPan(_ gesture: UIPanGestureRecognizer) {
+
+    @objc func handleCameraPan(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: self.view)
         
         switch gesture.state {
         case .began:
-           
+            
             if currentPoint.x > (self.view.bounds.width / 2.0) {
                 lastPanPoint = currentPoint
                 isPanning = true
@@ -354,7 +363,6 @@ extension SDL_uikitviewcontroller {
             
         case .changed:
             guard isPanning else { return }
-            
             
             let deltaX = currentPoint.x - lastPanPoint.x
             let deltaY = currentPoint.y - lastPanPoint.y
@@ -378,25 +386,22 @@ extension SDL_uikitviewcontroller {
         }
     }
 
+} 
+
 extension SDL_uikitviewcontroller: JoystickDelegate {
     
     func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-        
+
     }
 
-func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
-        
-
-        let cmd = "in_mouse 1\n"
-        let cString = cmd.cString(using: .ascii)
+    func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         
         
-      
         if displacement == 0 {
-            Key_Event(119, qboolean(rawValue: 0), qboolean(rawValue: 1)) // W off
-            Key_Event(115, qboolean(rawValue: 0), qboolean(rawValue: 1)) // S off
-            Key_Event(97,  qboolean(rawValue: 0), qboolean(rawValue: 1)) // A off
-            Key_Event(100, qboolean(rawValue: 0), qboolean(rawValue: 1)) // D off
+            Key_Event(119, qboolean(rawValue: 0), qboolean(rawValue: 1)) // off W
+            Key_Event(115, qboolean(rawValue: 0), qboolean(rawValue: 1)) // off S
+            Key_Event(97,  qboolean(rawValue: 0), qboolean(rawValue: 1)) // off A
+            Key_Event(100, qboolean(rawValue: 0), qboolean(rawValue: 1)) // off D
             return
         }
         
@@ -406,10 +411,8 @@ func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
         
         
         Key_Event(119, dy < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // W
-        Key_Event(115, dy > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1))  // S
-        
-     
-        Key_Event(97,  dx < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1))  // A 
-        Key_Event(100, dx > 0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1))   // D 
+        Key_Event(115, dy > 0.35  ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // S
+        Key_Event(97,  dx < -0.35 ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // A
+        Key_Event(100, dx > 0.35  ? qboolean(rawValue: 1) : qboolean(rawValue: 0), qboolean(rawValue: 1)) // D
     }
-}
+} 
