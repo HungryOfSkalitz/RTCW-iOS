@@ -321,7 +321,7 @@ extension SDL_uikitviewcontroller {
 extension SDL_uikitviewcontroller: JoystickDelegate {
     
     func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
-        .
+        
     }
 
     func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
