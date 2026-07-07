@@ -154,7 +154,7 @@ class GameViewController: UIViewController {
         
         argv.append("+set")
         argv.append("in_joystick")
-        argv.append("1")
+        argv.append("0")
         
         argv.append("+set")
         argv.append("in_joystickUseAnalog")
@@ -207,6 +207,14 @@ class GameViewController: UIViewController {
         argv.append("+bind")
         argv.append("PAD0_RIGHTSHOULDER")
         argv.append("\"weapprev\"")
+            
+        argv.append("+set")
+        argv.append("in_mouse")
+        argv.append("1") 
+
+        argv.append("+set")
+        argv.append("cl_freelook")
+        argv.append("1") 
         
         #if DEBUG
         argv.append("+set")
