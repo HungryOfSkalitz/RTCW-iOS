@@ -27,7 +27,7 @@ class GameViewController: UIViewController {
     let factor = UIScreen.main.scale
     var crouching = false
 
-    // ПЕРЕМЕННЫЕ ДЛЯ КОНТРОЛЯ КАМЕРЫ (СВАЙПОВ)
+    // Переменные для трекинга правого пальца (свободный обзор камеры)
     var cameraTouch: UITouch?
     var lastCameraPoint = CGPoint.zero
 
@@ -58,7 +58,6 @@ class GameViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Твой оригинальный код viewDidLoad...
     }
     
     func handleTouches(_ touches: Set<UITouch>) {
@@ -71,18 +70,19 @@ class GameViewController: UIViewController {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
+            // Если активно UI-меню игры — ведем себя как обычная мышь
             for touch in touches {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            // В ИГРЕ: Захватываем тач для камеры в правой половине экрана
+            // ЕСЛИ ИДЕТ ГЕЙМПЛЕЙ: Ищем палец в правой половине экрана
             let screenWidth = view.bounds.size.width
             for touch in touches {
                 let point = touch.location(in: view)
                 if point.x > screenWidth / 2 {
                     cameraTouch = touch
                     lastCameraPoint = point
-                    break
+                    break // Закрепляем этот палец за камерой
                 }
             }
             super.touchesBegan(touches, with: event)
@@ -95,7 +95,7 @@ class GameViewController: UIViewController {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            // В ИГРЕ: Считаем смещение пальца (дельту) для свободного обзора
+            // ЕСЛИ ИДЕТ ГЕЙМПЛЕЙ: Считаем относительный свайп
             if let touch = cameraTouch, touches.contains(touch) {
                 let currentPoint = touch.location(in: view)
                 
@@ -104,12 +104,13 @@ class GameViewController: UIViewController {
                 
                 lastCameraPoint = currentPoint
                 
+                // Настройка чувствительности (2.5 - базовый комфортный вариант)
                 let sensitivity: CGFloat = 2.5
                 let dx = Int32(deltaX * sensitivity)
                 let dy = Int32(deltaY * sensitivity)
                 
                 if dx != 0 || dy != 0 {
-                    // qfalse означает передачу ОТНОСИТЕЛЬНЫХ координат движку для вращения камеры
+                    // Передаем дельту. qfalse — заставляет движок вращать камеру, а не двигать курсор
                     CL_MouseEvent(dx, dy, Sys_Milliseconds(), qfalse)
                 }
             }
@@ -122,6 +123,7 @@ class GameViewController: UIViewController {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
         } else {
+            // Палец поднят — забываем его
             if let touch = cameraTouch, touches.contains(touch) {
                 cameraTouch = nil
             }
