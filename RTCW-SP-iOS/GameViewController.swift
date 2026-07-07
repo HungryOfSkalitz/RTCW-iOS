@@ -12,7 +12,7 @@ import GameController
 import CoreMotion
 #endif
 
-class GameViewController: UIViewController, JoystickDelegate {
+class GameViewController: UIViewController {
 
     var selectedMap = ""
     var selectedSavedGame = ""
@@ -28,7 +28,7 @@ class GameViewController: UIViewController, JoystickDelegate {
     var crouching = false
 
     #if os(iOS)
-    @IBOutlet weak var joystick1: JoyStickView!
+    var joystick1: JoyStickView!
     var fireButton: UIButton!
     var jumpButton: UIButton!
     var useButton: UIButton!
@@ -51,8 +51,6 @@ class GameViewController: UIViewController, JoystickDelegate {
     #if os(iOS)
     let motionManager: CMMotionManager = CMMotionManager()
     #endif
-    
-    var lastTouchPoints = [UITouch: CGPoint]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,17 +79,29 @@ class GameViewController: UIViewController, JoystickDelegate {
         self.navigationController?.navigationItem.backBarButtonItem?.isEnabled = false
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         
-        if joystick1 != nil {
-            joystick1.delegate = self
-        }
+//        tildeButton.layer.borderColor = UIColor.white.cgColor
+//        tildeButton.layer.borderWidth = 1
+//        tildeButton.alpha = 0
+//        escapeButton.layer.borderColor = UIColor.white.cgColor
+//        escapeButton.layer.borderWidth = 1
+//        escapeButton.alpha = 0
+//        quickSaveButton.layer.borderColor = UIColor.white.cgColor
+//        quickSaveButton.layer.borderWidth = 1
+//        quickSaveButton.alpha = 0
+//        quickLoadButton.layer.borderColor = UIColor.white.cgColor
+//        quickLoadButton.layer.borderWidth = 1
+//        quickLoadButton.alpha = 0
         #endif
         
         #if os(tvOS)
+        // note: this would prevent it from being accepted on the App Store
+        
         let menuPressRecognizer = UITapGestureRecognizer()
         menuPressRecognizer.addTarget(self, action: #selector(GameViewController.menuButtonAction))
         menuPressRecognizer.allowedPressTypes = [NSNumber(value: UIPress.PressType.menu.rawValue)]
         
         self.view.addGestureRecognizer(menuPressRecognizer)
+        
         #endif
         
         #if os(tvOS)
@@ -144,11 +154,59 @@ class GameViewController: UIViewController, JoystickDelegate {
         
         argv.append("+set")
         argv.append("in_joystick")
-        argv.append("0")
+        argv.append("1")
         
         argv.append("+set")
         argv.append("in_joystickUseAnalog")
-        argv.append("0")
+        argv.append("1")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTTRIGGER")
+        argv.append("\"+attack\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_UP")
+        argv.append("\"+forward\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_DOWN")
+        argv.append("\"+back\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_LEFT")
+        argv.append("\"+moveleft\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSTICK_RIGHT")
+        argv.append("\"+moveright\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_UP")
+        argv.append("\"+lookup\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_DOWN")
+        argv.append("\"+lookdown\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_LEFT")
+        argv.append("\"+left\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSTICK_RIGHT")
+        argv.append("\"+right\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_A")
+        argv.append("\"+moveup\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_LEFTSHOULDER")
+        argv.append("\"weapnext\"")
+        
+        argv.append("+bind")
+        argv.append("PAD0_RIGHTSHOULDER")
+        argv.append("\"weapprev\"")
         
         #if DEBUG
         argv.append("+set")
@@ -173,35 +231,6 @@ class GameViewController: UIViewController, JoystickDelegate {
         }
         #endif
         }
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if joystick1 != nil {
-            joystick1.delegate = self
-        }
-    }
-    
-    func handleJoyStick(angle: CGFloat, displacement: CGFloat) {
-        if displacement == 0 {
-            CL_KeyEvent(Int32(119), qfalse, UInt32(Sys_Milliseconds())) // W
-            CL_KeyEvent(Int32(115), qfalse, UInt32(Sys_Milliseconds())) // S
-            CL_KeyEvent(Int32(97), qfalse, UInt32(Sys_Milliseconds()))  // A
-            CL_KeyEvent(Int32(100), qfalse, UInt32(Sys_Milliseconds())) // D
-            return
-        }
-        
-        let radians = (180.0 - angle) * CGFloat.pi / 180.0
-        let dx = sin(radians) * displacement
-        let dy = cos(radians) * displacement
-        
-        CL_KeyEvent(Int32(119), dy > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(115), dy < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(97), dx < -0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-        CL_KeyEvent(Int32(100), dx > 0.3 ? qtrue : qfalse, UInt32(Sys_Milliseconds()))
-    }
-    
-    func handleJoyStickPosition(x: CGFloat, y: CGFloat) {
     }
     
     @objc func menuButtonAction() {
@@ -293,19 +322,38 @@ class GameViewController: UIViewController, JoystickDelegate {
     
     func handleTouches(_ touches: Set<UITouch>) {
         for touch in touches {
-            let point = touch.location(in: view)
+            var mouseLocation = CGPoint(x: 0, y: 0)
+            var point = touch.location(in: view)
             
-            if joystick1 != nil && joystick1.frame.contains(point) {
-                continue
+            var deltaX = 0
+            var deltaY = 0
+            
+            if view.bounds.size.height * 480 > view.bounds.size.width * 640 {
+                if point.x > view.bounds.size.width / 2 {
+                    let coof = (point.x - view.bounds.size.width / 2) * 1.3
+                    point.x = (view.bounds.size.width / 2 + coof)
+                }
+                else {
+                    let coof = (view.bounds.size.width / 2 - point.x) * 1.3;
+                    point.x = (view.bounds.size.width / 2 - coof);
+                }
             }
             
-            guard let lastPoint = lastTouchPoints[touch] else { continue }
+            mouseLocation.x = point.x * factor;
+            mouseLocation.y = point.y * factor;
             
-            let deltaX = Int32((point.x - lastPoint.x) * mouseScale.x * 4.0)
-            let deltaY = Int32((point.y - lastPoint.y) * mouseScale.y * 4.0)
+            // Not quite right on iPhone X but works for now -tkidd
+            deltaX = Int(roundf(Float((mouseLocation.x - GUIMouseLocation.x) * mouseScale.x)));
+            deltaY = Int(roundf(Float((mouseLocation.y - GUIMouseLocation.y) * mouseScale.y)));
             
-            CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qfalse)
-            lastTouchPoints[touch] = point
+//            print("ml.x: \(mouseLocation.x) gl.x: \(GUIMouseLocation.x) ms.x: \(mouseScale.x) ms.y: \(mouseScale.y)")
+            
+            GUIMouseLocation = mouseLocation;
+            
+            //                ri.Printf(PRINT_DEVELOPER, "%s: deltaX = %d, deltaY = %d\n", __PRETTY_FUNCTION__, deltaX, deltaY);
+            
+            CL_MouseEvent(Int32(deltaX), Int32(deltaY), Sys_Milliseconds(), qtrue);
+            
         }
     }
     
@@ -315,13 +363,7 @@ class GameViewController: UIViewController, JoystickDelegate {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            for touch in touches {
-                let point = touch.location(in: view)
-                if joystick1 != nil && joystick1.frame.contains(point) {
-                    continue
-                }
-                lastTouchPoints[touch] = point
-            }
+            super.touchesBegan(touches, with: event)
         }
     }
     
@@ -331,7 +373,7 @@ class GameViewController: UIViewController, JoystickDelegate {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            handleTouches(touches)
+            super.touchesBegan(touches, with: event)
         }
     }
     
@@ -340,15 +382,7 @@ class GameViewController: UIViewController, JoystickDelegate {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
         } else {
-            for touch in touches {
-                lastTouchPoints.removeValue(forKey: touch)
-            }
-        }
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch in touches {
-            lastTouchPoints.removeValue(forKey: touch)
+            super.touchesBegan(touches, with: event)
         }
     }
     
@@ -360,6 +394,6 @@ class GameViewController: UIViewController, JoystickDelegate {
     
     func KeyEvent(key: keyNum_t, down: Bool) {
           CL_KeyEvent(Int32(key.rawValue), qboolean(rawValue: down ? 1 : 0), UInt32(Sys_Milliseconds()))
-    }
+  }
 
 }
