@@ -69,6 +69,7 @@ class GameViewController: UIViewController {
     }
     
 
+
     var cameraTouch: UITouch?
     var lastPoint: CGPoint = .zero
 
@@ -78,7 +79,7 @@ class GameViewController: UIViewController {
                 handleMenuDragToPoint(point: touch.location(in: self.view))
             }
         } else {
-            
+           
             for touch in touches {
                 let point = touch.location(in: self.view)
                 if point.x > self.view.bounds.size.width / 2 {
@@ -99,24 +100,28 @@ class GameViewController: UIViewController {
             
             if let touch = cameraTouch, touches.contains(touch) {
                 let currentPoint = touch.location(in: self.view)
-                let dx = Int32((currentPoint.x - lastPoint.x) * 2.0)
-                let dy = Int32((currentPoint.y - lastPoint.y) * 2.0)
                 
-                if dx != 0 || dy != 0 {
+                
+                let deltaX = Int32((currentPoint.x - lastPoint.x) * 2.0)
+                let deltaY = Int32((currentPoint.y - lastPoint.y) * 2.0)
+                
+                if deltaX != 0 || deltaY != 0 {
                     
-                    CL_MouseEvent(dx, dy, Sys_Milliseconds(), 0) 
+                    CL_MouseEvent(deltaX, deltaY, Sys_Milliseconds(), qfalse)
                 }
+                
                 lastPoint = currentPoint
             }
             super.touchesMoved(touches, with: event)
         }
     }
-
+    
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if Key_GetCatcher() & KEYCATCH_UI != 0 {
             KeyEvent(key: K_MOUSE1, down: true)
             KeyEvent(key: K_MOUSE1, down: false)
         } else {
+            
             if let touch = cameraTouch, touches.contains(touch) {
                 cameraTouch = nil
             }
